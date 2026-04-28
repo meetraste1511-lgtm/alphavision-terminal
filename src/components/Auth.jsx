@@ -71,9 +71,6 @@ export default function Auth({ onLogin }) {
             </div>
           </div>
 
-            </div>
-          </div>
- 
           {!isForgotPassword && (
             <div className="input-group">
               <label>Password</label>
