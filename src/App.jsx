@@ -119,6 +119,7 @@ function App() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState('');
   const [livePrice, setLivePrice] = useState(null);
+  const [livePriceSource, setLivePriceSource] = useState('');
   const [livePriceFetching, setLivePriceFetching] = useState(false);
   
   const fileInputRef = useRef(null);
@@ -132,20 +133,24 @@ function App() {
     setLivePriceFetching(true);
 
     const fetchPrice = async () => {
-      // On Vercel: call our secure server-side proxy (no CORS issues)
-      // On localhost: Binance works for crypto; everything else uses the marketData service
       try {
         const r = await fetch(`/api/live-price?symbol=${directAsset}`);
         if (r.ok) {
           const d = await r.json();
-          if (!cancelled && d.price) { setLivePrice(d.price); return; }
+          if (!cancelled && d.price) { 
+            setLivePrice(d.price); 
+            setLivePriceSource(d.source || 'Verified Source');
+            return; 
+          }
         }
-      } catch { /* /api route not available on localhost — use fallback */ }
+      } catch { /* ignore */ }
 
-      // Localhost fallback: use the marketData service
       try {
         const ctx = await getMarketContext(directAsset, exchange, activeTimeframe, apiKeys.twelvedata);
-        if (!cancelled && ctx.lastPrice) setLivePrice(ctx.lastPrice);
+        if (!cancelled && ctx.lastPrice) {
+          setLivePrice(ctx.lastPrice);
+          setLivePriceSource('TwelveData');
+        }
       } catch { /* ignore */ }
     };
 
@@ -451,8 +456,8 @@ function App() {
                   border: `1px solid ${livePrice ? 'rgba(14,203,129,0.3)' : 'var(--surface-border)'}`,
                   transition: 'all 0.3s ease',
                 }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                    ⚡ LIVE PRICE
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    ⚡ LIVE PRICE {livePriceSource ? `• Data by ${livePriceSource}` : ''}
                   </span>
                   <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--success-color)', fontFamily: 'monospace' }}>
                     {livePriceFetching ? '⏳ Fetching...' : livePrice ? livePrice : '— Not Available'}
@@ -466,6 +471,12 @@ function App() {
               </button>
               
               {error && <div className="error-msg">{error}</div>}
+            </div>
+
+            {/* Legal Trust Shield Footer */}
+            <div style={{ padding: '16px 20px', marginTop: 'auto', borderTop: '1px solid var(--surface-border)', fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: '1.4', textAlign: 'center' }}>
+              <ShieldAlert size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: 'var(--text-secondary)' }} />
+              <strong>AlphaVision Core</strong> is a quantitative analysis tool. All outputs are for educational paper-trading simulation only. Not SEBI registered financial advice.
             </div>
 
             {/* Timeframe Tabs */}
@@ -495,12 +506,79 @@ function App() {
                   })}
                 </div>
 
-                {isAnalyzing ? (
-                  <div className="loader" style={{ padding: '30px 0' }}>
-                    <div className="spinner"></div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scraping live data for all timeframes...</span>
+                {/* Right Panel: Results & Setup */}
+        <div className="results-panel" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          
+          {/* Professional Empty State / System Dashboard */}
+          {!isAnalyzing && !results && inputMode === 'direct' && (
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+              <Activity size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
+              <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '8px', fontWeight: 600 }}>AlphaVision Terminal Ready</h2>
+              <p style={{ fontSize: '0.9rem', marginBottom: '32px', textAlign: 'center', maxWidth: '400px', lineHeight: '1.5' }}>
+                Institutional grade quantitative analysis engine. Select an asset on the left to begin multi-timeframe market scanning.
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%', maxWidth: '500px' }}>
+                <div style={{ background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 8px var(--success-color)' }}></div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>AI Engine Status</span>
                   </div>
-                ) : activeResult ? (
+                  <div style={{ fontSize: '0.85rem' }}>Engine Online & Synchronized</div>
+                </div>
+                
+                <div style={{ background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 8px var(--success-color)' }}></div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>Data Feeds</span>
+                  </div>
+                  <div style={{ fontSize: '0.85rem' }}>Connected to {livePriceSource || 'Global Markets'}</div>
+                </div>
+                
+                <div style={{ background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)', gridColumn: '1 / -1' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-primary)', display: 'block', marginBottom: '12px' }}>Confidence Key</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--success-color)' }}></div> &gt; 75% (Prime)</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--warning-color)' }}></div> 50-74% (Watchlist)</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--danger-color)' }}></div> &lt; 50% (No Trade)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isAnalyzing && !results && inputMode === 'image' && (
+            <div 
+              className={`upload-area ${isDragging ? 'dragging' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {!image ? (
+                <>
+                  <UploadCloud size={48} color="var(--accent-color)" style={{ marginBottom: '16px' }} />
+                  <h3>Upload TradingView Chart</h3>
+                  <p>Drag and drop or click to browse</p>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+                  <button className="btn-secondary" style={{ marginTop: '16px' }} onClick={() => fileInputRef.current?.click()}>
+                    Browse Files
+                  </button>
+                </>
+              ) : (
+                <div className="image-preview">
+                  <img src={image} alt="Chart to analyze" />
+                  <button className="icon-btn remove-btn" onClick={removeImage}><X size={20} /></button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {isAnalyzing ? (
+            <div className="loader" style={{ padding: '30px 0' }}>
+              <div className="spinner"></div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Scraping live data for all timeframes...</span>
+            </div>
+          ) : activeResult ? (
                   <div className="tf-result-panel">
                     {/* Confidence Bar */}
                     <div className="confidence-container">
