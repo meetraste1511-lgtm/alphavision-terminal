@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Cpu, BarChart3, Database, ShieldCheck, ExternalLink, Mail, Github, Linkedin, Code2, Globe, Activity } from 'lucide-react';
+import { Zap, Cpu, BarChart3, Database, ShieldCheck, ExternalLink, Mail, Code2, Globe, Activity, User } from 'lucide-react';
 import './Portfolio.css';
 
 const Portfolio = ({ onClose }) => {
@@ -81,8 +81,8 @@ const Portfolio = ({ onClose }) => {
                   <Mail size={16} /> Email Me
                 </a>
                 <div className="social-row">
-                  <a href="https://github.com/meetraste1511-lgtm" target="_blank" rel="noreferrer" className="social-btn"><Github size={18} /></a>
-                  <a href="#" className="social-btn"><Linkedin size={18} /></a>
+                  <a href="https://github.com/meetraste1511-lgtm" target="_blank" rel="noreferrer" className="social-btn"><Code2 size={18} /></a>
+                  <a href="#" className="social-btn"><ExternalLink size={18} /></a>
                   <a href="#" className="social-btn"><Globe size={18} /></a>
                 </div>
               </div>
