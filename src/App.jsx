@@ -22,8 +22,8 @@ const EXCHANGES = [
 ];
 
 const QUICK_PICKS = [
-  { label: 'NIFTY', symbol: 'NIFTY', exchange: 'NSE' },
-  { label: 'BANKNIFTY', symbol: 'BANKNIFTY', exchange: 'NSE' },
+  { label: 'NIFTY', symbol: 'NIFTY', exchange: '' },
+  { label: 'BANKNIFTY', symbol: 'BANKNIFTY', exchange: '' },
   { label: 'BTC', symbol: 'BTCUSDT', exchange: 'BINANCE' },
   { label: 'GOLD', symbol: 'GOLD', exchange: 'COMEX' },
   { label: 'NDX (Nasdaq)', symbol: 'NDX', exchange: 'NASDAQ' },
@@ -684,6 +684,27 @@ function App() {
                     )}
                   </div>
                 ) : null}
+              </div>
+            )}
+
+            {/* Professional Empty State / System Dashboard in Sidebar */}
+            {!isAnalyzing && !results && inputMode === 'direct' && (
+              <div className="sidebar-section" style={{ textAlign: 'center', padding: '30px 20px', background: 'transparent' }}>
+                <Activity size={32} style={{ marginBottom: '16px', opacity: 0.3, color: 'var(--accent-color)' }} />
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '8px' }}>Terminal Ready</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.4' }}>
+                  Institutional engine online. Click Analyze to scan all timeframes.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 6px var(--success-color)' }}></div>
+                    Engine Synchronized
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 6px var(--success-color)' }}></div>
+                    Data: {livePriceSource || 'Global API'}
+                  </div>
+                </div>
               </div>
             )}
 
