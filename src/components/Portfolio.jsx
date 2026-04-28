@@ -23,9 +23,9 @@ const Portfolio = ({ onClose }) => {
       tech: ["WebSocket", "REST API", "Proxy"]
     },
     {
-      title: "Risk Management Engine",
+      title: "Risk & Confluence Engine",
       icon: <ShieldCheck className="h-6 w-6 text-amber-400" />,
-      desc: "Automated position sizing based on fractional risk models, mandatory R:R enforcement, and local P&L performance tracking.",
+      desc: "Quantitative risk modeling based on fractional risk parameters and mandatory 1:2 R:R validation to ensure disciplined research execution.",
       tech: ["Quant Logic", "LocalDB", "Supabase"]
     }
   ];
@@ -38,12 +38,12 @@ const Portfolio = ({ onClose }) => {
         <header className="portfolio-header">
           <div className="portfolio-badge">INSTITUTIONAL PITCH</div>
           <h1>AlphaVision Terminal</h1>
-          <p className="portfolio-tagline">Engineered by a Full-Stack Quant Developer</p>
+          <p className="portfolio-tagline">Engineered for Quantitative Research Automation</p>
         </header>
 
         <div className="portfolio-body">
           <section className="portfolio-main">
-            <h3>Technical Excellence</h3>
+            <h3>Quantitative Excellence</h3>
             <div className="highlights-grid">
               {highlights.map((item, i) => (
                 <div key={i} className="highlight-card">

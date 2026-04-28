@@ -6,6 +6,7 @@ import { supabase } from './supabaseClient';
 import Auth from './components/Auth';
 import Paywall from './components/Paywall';
 import Portfolio from './components/Portfolio';
+import Disclaimer from './components/Disclaimer';
 import './App.css';
 import './mobile.css';
 
@@ -325,7 +326,7 @@ function App() {
         <aside className="sidebar-panel">
           <div className="sidebar-content">
             <div className="sidebar-section">
-              <div className="section-title">Order Entry</div>
+              <div className="section-title">Research Parameters</div>
               {inputMode === 'direct' && (
                 <>
                   <div className="form-group">
@@ -379,7 +380,7 @@ function App() {
               )}
               <button className="btn-primary" onClick={analyzeChart} disabled={isAnalyzing}>
                 <Zap size={14} style={{ marginRight: '6px' }} />
-                {isAnalyzing ? 'Scanning...' : 'Analyze Market'}
+                {isAnalyzing ? 'Scanning...' : 'Generate Research Report'}
               </button>
               {error && <div className="error-msg" style={{ marginTop: '12px' }}>{error}</div>}
             </div>
@@ -419,8 +420,8 @@ function App() {
                       <div className="level-card rr"><span className="level-label">R:R</span><span className="level-value">{displayRR}</span></div>
                     </div>
                     <div className="trade-log-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                      <button className="log-btn win" style={{ flex: 1 }} onClick={() => logTrade(true)}>Win</button>
-                      <button className="log-btn lose" style={{ flex: 1 }} onClick={() => logTrade(false)}>Loss</button>
+                      <button className="log-btn win" style={{ flex: 1 }} onClick={() => logTrade(true)}>Validated</button>
+                      <button className="log-btn lose" style={{ flex: 1 }} onClick={() => logTrade(false)}>Invalidated</button>
                     </div>
                   </div>
                 )}
@@ -476,7 +477,7 @@ function App() {
           
           {activeResult && (
             <div className="analysis-overlay" style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px', background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-              <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>INSTITUTIONAL ANALYSIS — {activeTimeframe}</h4>
+              <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>INSTITUTIONAL ANALYSIS REPORT — {activeTimeframe}</h4>
               <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{activeResult.analysis}</p>
               {results.liveContext && <p style={{ marginTop: '8px', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--accent-color)' }}>{results.liveContext}</p>}
             </div>
@@ -510,6 +511,7 @@ function App() {
       )}
 
       {showPortfolio && <Portfolio onClose={() => setShowPortfolio(false)} />}
+      <Disclaimer />
     </div>
   );
 }
