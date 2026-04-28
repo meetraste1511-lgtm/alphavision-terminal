@@ -138,3 +138,19 @@
 .text-btn:hover {
   text-decoration: underline;
 }
+
+.forgot-link {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 8px;
+  cursor: pointer;
+  float: right;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: var(--accent-color);
+}
+
