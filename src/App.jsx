@@ -6,6 +6,7 @@ import { supabase } from './supabaseClient';
 import Auth from './components/Auth';
 import Paywall from './components/Paywall';
 import './App.css';
+import './mobile.css';
 
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', 'Daily'];
 

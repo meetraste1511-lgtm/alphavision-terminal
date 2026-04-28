@@ -1,0 +1,92 @@
+/* ==========================================================================
+   MOBILE ALIGNMENT AND RESPONSIVENESS
+   ========================================================================== */
+
+@media screen and (max-width: 768px) {
+  /* Fix the main layout to stack vertically on phones */
+  .main-content {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+
+  /* Make sidebar take full width on mobile */
+  .sidebar-panel {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--surface-border) !important;
+    max-height: none !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Make the header wrap and stack nicely */
+  .header {
+    height: auto !important;
+    padding: 12px 16px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .header-left {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .header-separator {
+    display: none !important;
+  }
+
+  /* Mode toggle buttons full width */
+  .mode-toggle {
+    width: 100% !important;
+    display: flex !important;
+  }
+  .mode-toggle button {
+    flex: 1 !important;
+  }
+
+  /* Header actions row below title */
+  .header-actions {
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+
+  /* Make the iframe/tradingview container scrollable vertically */
+  .chart-panel {
+    min-height: 400px !important;
+  }
+
+  /* Fix risk grid stacking */
+  .risk-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Results panel full width */
+  .results-panel {
+    width: 100% !important;
+    padding: 16px !important;
+  }
+
+  /* Make order entry inputs stack */
+  .sidebar-section {
+    padding: 12px !important;
+  }
+
+  /* Fix the timeframes row to scroll horizontally if needed */
+  .timeframe-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+  }
+  
+  /* Make sure the quick picks are easily tappable */
+  .quick-picks {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+  
+  .qp-btn {
+    padding: 8px 4px !important;
+    font-size: 0.7rem !important;
+  }
+}
