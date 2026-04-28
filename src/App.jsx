@@ -300,10 +300,11 @@ function App() {
   };
 
   const getTvSymbol = () => {
-    // TradingView's free widget often fails with NSE: or BSE: prefixes for indices.
-    // We strip the prefix for Indian exchanges to allow TV to auto-resolve correctly.
-    if (exchange === 'NSE' || exchange === 'BSE') return directAsset;
-    
+    // Absolute overrides for Indian Indices to ensure they load on the free TV widget
+    if (directAsset === 'NIFTY') return 'NIFTY';
+    if (directAsset === 'BANKNIFTY') return 'BANKNIFTY';
+
+    // For everything else, use the selected exchange prefix
     if (exchange) return `${exchange}:${directAsset}`;
     return directAsset;
   };
@@ -479,7 +480,7 @@ function App() {
 
             {/* Legal Trust Shield Footer */}
             <div style={{ padding: '16px 20px', marginTop: 'auto', borderTop: '1px solid var(--surface-border)', fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: '1.4', textAlign: 'center' }}>
-              <ShieldAlert size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: 'var(--text-secondary)' }} />
+              <ShieldAlert size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: 'var(--accent-color)' }} />
               <strong>AlphaVision Core</strong> is a quantitative analysis tool. All outputs are for educational paper-trading simulation only. Not SEBI registered financial advice.
             </div>
 
