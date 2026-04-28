@@ -7,10 +7,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
-  const { symbol } = req.query;
+  const { symbol, timeframe, ohlc } = req.query;
   if (!symbol) return res.status(400).json({ error: 'symbol is required' });
 
   const upper = symbol.toUpperCase();
+  const tf = timeframe || '1H';
 
   // ── Indian Indices via Groww ───────────────────────────────────────────────
   const GROWW_MAP = { NIFTY: 'NIFTY', BANKNIFTY: 'BANKNIFTY', FINNIFTY: 'FINNIFTY' };
@@ -47,55 +48,56 @@ export default async function handler(req, res) {
       binSym = upper + 'USDT';
     }
     try {
-      const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binSym}`);
+      const binInterval = { '1m':'1m', '5m':'5m', '15m':'15m', '1H':'1h', '4H':'4h', 'Daily':'1d' }[tf] || '1h';
+      const endpoint = ohlc ? `klines?symbol=${binSym}&interval=${binInterval}&limit=30` : `ticker/price?symbol=${binSym}`;
+      const r = await fetch(`https://api.binance.com/api/v3/${endpoint}`);
       if (r.ok) {
         const d = await r.json();
-        const val = parseFloat(d.price);
-        if (!isNaN(val)) {
-          return res.json({ symbol: upper, price: val.toFixed(2), source: 'Binance' });
+        if (ohlc) {
+          const rows = d.reverse().map(k => `${new Date(k[0]).toISOString()} | O:${parseFloat(k[1]).toFixed(2)} H:${parseFloat(k[2]).toFixed(2)} L:${parseFloat(k[3]).toFixed(2)} C:${parseFloat(k[4]).toFixed(2)}`);
+          return res.json({ symbol: upper, price: parseFloat(d[0][4]).toFixed(2), data: rows.join('\n'), source: 'Binance' });
         }
+        return res.json({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Binance' });
       }
     } catch (e) { console.error('Binance Error:', e.message); }
   }
 
   // ── Everything else via Yahoo Finance (Global Markets) ──────────────────
   const YAHOO_MAP = {
-    // India
-    SENSEX: '^BSESN',
-    NIFTY: '^NSEI',
-    BANKNIFTY: '^NSEBANK',
-    // US Indices
-    SPX: '^GSPC', SP500: '^GSPC',
-    NDX: '^NDX', NASDAQ: '^IXIC',
-    DJI: '^DJI', DOW: '^DJI', US30: '^DJI',
-    RUT: '^RUT', RUSSELL: '^RUT',
-    // Commodities & Forex
-    GOLD: 'GC=F', XAUUSD: 'GC=F',
-    SILVER: 'SI=F', XAGUSD: 'SI=F',
-    OIL: 'CL=F', WTI: 'CL=F',
-    DXY: 'DX-Y.NYB'
+    SENSEX: '^BSESN', NIFTY: '^NSEI', BANKNIFTY: '^NSEBANK',
+    SPX: '^GSPC', SP500: '^GSPC', NDX: '^NDX', NASDAQ: '^IXIC', DJI: '^DJI',
+    GOLD: 'GC=F', XAUUSD: 'GC=F', SILVER: 'SI=F', DXY: 'DX-Y.NYB'
   };
   
   const yahooSym = YAHOO_MAP[upper] ?? upper;
   try {
+    const ytf = { '1m':'1m', '5m':'5m', '15m':'15m', '1H':'1h', '4H':'1h', 'Daily':'1d' }[tf] || '1h';
     const r = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=1m&range=1d`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=${ytf}&range=5d`,
       { headers: { 'User-Agent': 'Mozilla/5.0' } }
     );
     if (r.ok) {
       const d = await r.json();
       const meta = d.chart?.result?.[0]?.meta;
+      const result = d.chart?.result?.[0];
       const price = meta?.regularMarketPrice ?? meta?.previousClose;
-      if (price && !isNaN(parseFloat(price))) {
-        return res.json({ 
-          symbol: upper, 
-          price: parseFloat(price).toFixed(2), 
-          source: 'Yahoo' 
-        });
+      
+      if (ohlc && result) {
+        const timestamps = result.timestamp ?? [];
+        const quote = result.indicators?.quote?.[0] ?? {};
+        const rows = [];
+        for (let i = timestamps.length - 1; i >= Math.max(0, timestamps.length - 30); i--) {
+          if (quote.close?.[i]) {
+            rows.push(`${new Date(timestamps[i] * 1000).toISOString()} | O:${parseFloat(quote.open[i]).toFixed(2)} H:${parseFloat(quote.high[i]).toFixed(2)} L:${parseFloat(quote.low[i]).toFixed(2)} C:${parseFloat(quote.close[i]).toFixed(2)}`);
+          }
+        }
+        return res.json({ symbol: upper, price: parseFloat(price).toFixed(2), data: rows.join('\n'), source: 'Yahoo' });
       }
+
+      if (price) return res.json({ symbol: upper, price: parseFloat(price).toFixed(2), source: 'Yahoo' });
     }
   } catch (e) { console.error('Yahoo Error:', e.message); }
 
-  return res.status(404).json({ error: `Live price currently unavailable for ${symbol}. Please use Manual Price override.` });
+  return res.status(404).json({ error: `Price unavailable for ${symbol}` });
 }
 }

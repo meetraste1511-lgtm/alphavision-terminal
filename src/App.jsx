@@ -131,16 +131,17 @@ function App() {
 
     const fetchPrice = async () => {
       try {
-        const r = await fetch(`/api/live-price?symbol=${directAsset}`);
+        const proxyUrl = `/api/live-price?symbol=${directAsset}&exchange=${exchange}&timeframe=${activeTimeframe}`;
+        const r = await fetch(proxyUrl);
         if (r.ok) {
           const d = await r.json();
-          if (!cancelled && d.price && !isNaN(parseFloat(d.price))) { 
-            setLivePrice(d.price); 
-            setLivePriceSource(d.source || 'Verified Source');
-            return; 
+          if (!cancelled && d.price && !isNaN(parseFloat(d.price))) {
+            setLivePrice(d.price);
+            setLivePriceSource(d.source || 'Proxy');
+            return;
           }
         }
-      } catch { /* ignore */ }
+      } catch (e) { console.error('Proxy Fetch Error:', e); }
 
       try {
         const ctx = await getMarketContext(directAsset, exchange, activeTimeframe, apiKeys.twelvedata);
@@ -447,6 +448,7 @@ function App() {
           {inputMode === 'direct' ? (
             <div className="tv-widget-container">
               <iframe 
+                key={getTvSymbol() + getTvInterval()}
                 src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(getTvSymbol())}&interval=${getTvInterval()}&theme=${theme === 'dark' ? 'dark' : 'light'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
                 width="100%" height="100%" frameBorder="0" allowFullScreen title="Live Chart"
               ></iframe>

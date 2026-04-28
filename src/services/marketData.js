@@ -211,80 +211,45 @@ async function fetchFromTwelveData(symbol, exchange, timeframe, apiKey, outputSi
 }
 
 // ─── MAIN ROUTER ─────────────────────────────────────────────────────────────
-export async function fetchOHLC(symbol, exchange, timeframe, apiKey, outputSize = 50) {
+export async function fetchOHLC(symbol, exchange, timeframe, apiKey, outputSize = 30) {
   const upperSymbol = symbol.toUpperCase();
+  
+  try {
+    // Try our proxy first (bypasses CORS and handles all routing)
+    const r = await fetch(`/api/live-price?symbol=${upperSymbol}&timeframe=${timeframe}&ohlc=true`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.data) {
+        return {
+          success: true,
+          data: d.data,
+          lastPrice: d.price,
+          source: d.source || 'Proxy'
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Proxy fetch failed, falling back to direct:', e.message);
+  }
 
-  // Route 1: Crypto → Binance (most accurate, real-time, no key needed)
+  // Route 1: Crypto → Binance
   const isCrypto = BINANCE_SYMBOLS.has(upperSymbol) ||
                    upperSymbol.endsWith('USDT') || upperSymbol.endsWith('BTC') ||
                    exchange === 'BINANCE' || exchange === 'CRYPTO';
   if (isCrypto) {
     try {
       return await fetchFromBinance(upperSymbol, timeframe, outputSize);
-    } catch (e) {
-      console.warn('Binance failed, falling back:', e.message);
-    }
+    } catch (e) { console.warn('Binance fallback failed:', e.message); }
   }
 
-  // Route 2: Indian Indices → Groww (live) + Yahoo (OHLC candles)
+  // Fallback to direct fetch (might hit CORS in browser, but works in Node/Electron)
   if (['NIFTY', 'BANKNIFTY'].includes(upperSymbol)) {
     try {
-      // Get live price from Groww AND OHLC history from Yahoo in parallel
-      const [growwData, yahooResult] = await Promise.allSettled([
-        fetchFromGroww(upperSymbol),
-        fetchFromYahoo(upperSymbol, timeframe, outputSize),
-      ]);
-
-      const livePrice = growwData.status === 'fulfilled'
-        ? growwData.value.livePrice
-        : yahooResult.value?.lastPrice;
-
-      if (yahooResult.status === 'fulfilled') {
-        const result = yahooResult.value;
-        // Override the lastPrice with Groww's real-time value (more accurate)
-        if (livePrice) {
-          result.lastPrice = livePrice;
-          // Prepend a live price note to the data string
-          result.data = `⚡ REAL-TIME LIVE PRICE (Groww): ${livePrice}\n` + result.data;
-        }
-        return result;
-      }
-
-      // If Yahoo also failed, return a minimal result with just the live price
-      if (growwData.status === 'fulfilled') {
-        const gd = growwData.value;
-        return {
-          success: true,
-          data: `⚡ REAL-TIME LIVE PRICE for ${upperSymbol}: ${gd.livePrice}\nToday: O:${gd.open} H:${gd.high} L:${gd.low} C:${gd.close}`,
-          lastPrice: gd.livePrice,
-          candles: [],
-          source: 'Groww',
-        };
-      }
-    } catch (e) {
-      console.warn('Indian index fetch failed:', e.message);
-    }
-  }
-
-  // Route 3: Gold, SPX, SENSEX → Yahoo Finance
-  if (YAHOO_SYMBOL_MAP[upperSymbol]) {
-    try {
       return await fetchFromYahoo(upperSymbol, timeframe, outputSize);
-    } catch (e) {
-      console.warn('Yahoo Finance failed:', e.message);
-    }
+    } catch (e) { console.warn('Yahoo fallback failed:', e.message); }
   }
 
-  // Route 4: Everything else → Twelve Data (US stocks, forex, etc.)
-  if (apiKey) {
-    try {
-      return await fetchFromTwelveData(upperSymbol, exchange, timeframe, apiKey, outputSize);
-    } catch (e) {
-      console.warn('Twelve Data failed:', e.message);
-    }
-  }
-
-  return { success: false, error: `Could not fetch live market data for ${symbol}. Please type the current price in the "Live Price Override" field.` };
+  return { success: false, error: `Live data unavailable for ${symbol}.` };
 }
 
 // ─── GET MARKET CONTEXT (used by App.jsx) ─────────────────────────────────────
