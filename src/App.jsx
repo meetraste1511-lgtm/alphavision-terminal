@@ -5,6 +5,7 @@ import { analyzeWithProvider } from './services/aiProviders';
 import { supabase } from './supabaseClient';
 import Auth from './components/Auth';
 import Paywall from './components/Paywall';
+import Portfolio from './components/Portfolio';
 import './App.css';
 import './mobile.css';
 
@@ -62,6 +63,7 @@ function App() {
   const [aiProvider, setAiProvider] = useState(localStorage.getItem('av_ai_provider') || 'gemini');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [showSettings, setShowSettings] = useState(false);
+  const [showPortfolio, setShowPortfolio] = useState(false);
   const [session, setSession] = useState(null);
   const [hasAccess, setHasAccess] = useState(true);
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
@@ -309,6 +311,10 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
+          <button className="btn-pitch" onClick={() => setShowPortfolio(true)}>
+            <Zap size={14} style={{ marginRight: '6px' }} />
+            Institutional Pitch
+          </button>
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
           <button className="icon-btn" onClick={() => supabase.auth.signOut()}><XCircle size={20} /></button>
@@ -502,6 +508,8 @@ function App() {
           </div>
         </div>
       )}
+
+      {showPortfolio && <Portfolio onClose={() => setShowPortfolio(false)} />}
     </div>
   );
 }
