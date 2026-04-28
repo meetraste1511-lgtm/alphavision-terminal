@@ -99,14 +99,19 @@ async function fetchFromGroww(symbol) {
   const d = await res.json();
 
   const livePrice = d.value ?? d.close;
-  if (!livePrice) throw new Error('No price in Groww response');
+  if (!livePrice || isNaN(parseFloat(livePrice))) throw new Error('No valid price in Groww response');
+
+  const safeParse = (v) => {
+    const p = parseFloat(v);
+    return isNaN(p) ? parseFloat(livePrice) : p;
+  };
 
   return {
     livePrice: parseFloat(livePrice).toFixed(2),
-    open:  parseFloat(d.open  ?? livePrice).toFixed(2),
-    high:  parseFloat(d.high  ?? livePrice).toFixed(2),
-    low:   parseFloat(d.low   ?? livePrice).toFixed(2),
-    close: parseFloat(d.close ?? livePrice).toFixed(2),
+    open:  safeParse(d.open).toFixed(2),
+    high:  safeParse(d.high).toFixed(2),
+    low:   safeParse(d.low).toFixed(2),
+    close: safeParse(d.close).toFixed(2),
   };
 }
 
@@ -127,7 +132,9 @@ async function fetchFromYahoo(symbol, timeframe, outputSize = 50) {
   const meta       = result.meta;
   const timestamps = result.timestamp ?? [];
   const quote      = result.indicators?.quote?.[0] ?? {};
-  const livePrice  = parseFloat(meta.regularMarketPrice).toFixed(2);
+  
+  const rawPrice = meta.regularMarketPrice ?? meta.previousClose;
+  const livePrice = (rawPrice && !isNaN(parseFloat(rawPrice))) ? parseFloat(rawPrice).toFixed(2) : '0.00';
 
   let candles = [];
   for (let i = timestamps.length - 1; i >= Math.max(0, timestamps.length - outputSize); i--) {

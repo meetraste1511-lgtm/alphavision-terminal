@@ -134,7 +134,7 @@ function App() {
         const r = await fetch(`/api/live-price?symbol=${directAsset}`);
         if (r.ok) {
           const d = await r.json();
-          if (!cancelled && d.price && d.price !== 'NaN') { 
+          if (!cancelled && d.price && !isNaN(parseFloat(d.price))) { 
             setLivePrice(d.price); 
             setLivePriceSource(d.source || 'Verified Source');
             return; 
@@ -248,8 +248,8 @@ function App() {
   };
 
   const getTvSymbol = () => {
-    if (directAsset === 'NIFTY') return 'NIFTY';
-    if (directAsset === 'BANKNIFTY') return 'BANKNIFTY';
+    if (directAsset === 'NIFTY') return 'NSE:NIFTY';
+    if (directAsset === 'BANKNIFTY') return 'NSE:BANKNIFTY';
     if (exchange) return `${exchange}:${directAsset}`;
     return directAsset;
   };
@@ -296,42 +296,42 @@ function App() {
   if (!hasAccess && session?.user?.email !== ADMIN_EMAIL) return <Paywall userEmail={session.user.email} />;
 
   return (
-    <div className=\"app-container\" data-theme={theme}>
-      <header className=\"header\">
-        <div className=\"header-left\">
-          <Activity color=\"var(--accent-color)\" size={22} />
+    <div className="app-container" data-theme={theme}>
+      <header className="header">
+        <div className="header-left">
+          <Activity color="var(--accent-color)" size={22} />
           <h1>AlphaVision Terminal</h1>
-          <div className=\"header-separator\"></div>
-          <div className=\"mode-toggle\">
+          <div className="header-separator"></div>
+          <div className="mode-toggle">
             <button className={inputMode === 'direct' ? 'active' : ''} onClick={() => setInputMode('direct')}>Live Chart</button>
             <button className={inputMode === 'image' ? 'active' : ''} onClick={() => setInputMode('image')}>Image Upload</button>
           </div>
         </div>
-        <div className=\"header-actions\">
-          <button className=\"icon-btn\" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
-          <button className=\"icon-btn\" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
-          <button className=\"icon-btn\" onClick={() => supabase.auth.signOut()}><XCircle size={20} /></button>
+        <div className="header-actions">
+          <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
+          <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
+          <button className="icon-btn" onClick={() => supabase.auth.signOut()}><XCircle size={20} /></button>
         </div>
       </header>
 
-      <main className=\"main-content\">
-        <aside className=\"sidebar-panel\">
-          <div className=\"sidebar-content\">
-            <div className=\"sidebar-section\">
-              <div className=\"section-title\">Order Entry</div>
+      <main className="main-content">
+        <aside className="sidebar-panel">
+          <div className="sidebar-content">
+            <div className="sidebar-section">
+              <div className="section-title">Order Entry</div>
               {inputMode === 'direct' && (
                 <>
-                  <div className=\"form-group\">
+                  <div className="form-group">
                     <label>Exchange</label>
                     <select value={exchange} onChange={(e) => setExchange(e.target.value)}>
                       {EXCHANGES.map(ex => <option key={ex.value} value={ex.value}>{ex.label}</option>)}
                     </select>
                   </div>
-                  <div className=\"form-group\">
+                  <div className="form-group">
                     <label>Ticker Symbol</label>
-                    <input type=\"text\" value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
+                    <input type="text" value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
                   </div>
-                  <div className=\"quick-picks\">
+                  <div className="quick-picks">
                     {QUICK_PICKS.map(qp => (
                       <button key={qp.label} className={`qp-btn ${directAsset === qp.symbol ? 'active' : ''}`} onClick={() => { setDirectAsset(qp.symbol); setExchange(qp.exchange); }}>{qp.label}</button>
                     ))}
@@ -339,27 +339,27 @@ function App() {
                 </>
               )}
               <div style={{ display: 'flex', gap: '8px' }}>
-                <div className=\"form-group\" style={{ flex: 1 }}>
+                <div className="form-group" style={{ flex: 1 }}>
                   <label>Side</label>
                   <select value={tradeType} onChange={(e) => setTradeType(e.target.value)}>
-                    <option value=\"long\">Long</option>
-                    <option value=\"short\">Short</option>
+                    <option value="long">Long</option>
+                    <option value="short">Short</option>
                   </select>
                 </div>
-                <div className=\"form-group\" style={{ flex: 1 }}>
+                <div className="form-group" style={{ flex: 1 }}>
                   <label>Style</label>
                   <select value={tradeStyle} onChange={(e) => setTradeStyle(e.target.value)}>
-                    <option value=\"scalp\">Scalp</option>
-                    <option value=\"swing\">Swing</option>
+                    <option value="scalp">Scalp</option>
+                    <option value="swing">Swing</option>
                   </select>
                 </div>
               </div>
-              <div className=\"form-group\">
+              <div className="form-group">
                 <label>Base Capital</label>
-                <input type=\"number\" value={capital} onChange={(e) => setCapital(e.target.value)} />
+                <input type="number" value={capital} onChange={(e) => setCapital(e.target.value)} />
               </div>
               {inputMode === 'direct' && (
-                <div className=\"live-price-badge\" style={{ 
+                <div className="live-price-badge" style={{ 
                   padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '12px', 
                   border: `1px solid ${livePrice ? 'var(--success-color)' : 'var(--surface-border)'}`,
                   opacity: livePriceFetching ? 0.6 : 1
@@ -370,24 +370,24 @@ function App() {
                   </div>
                 </div>
               )}
-              <button className=\"btn-primary\" onClick={analyzeChart} disabled={isAnalyzing}>
+              <button className="btn-primary" onClick={analyzeChart} disabled={isAnalyzing}>
                 <Zap size={14} style={{ marginRight: '6px' }} />
                 {isAnalyzing ? 'Scanning...' : 'Analyze Market'}
               </button>
-              {error && <div className=\"error-msg\" style={{ marginTop: '12px' }}>{error}</div>}
+              {error && <div className="error-msg" style={{ marginTop: '12px' }}>{error}</div>}
             </div>
 
             {/* Results Section */}
             {(isAnalyzing || results) && (
               <>
-                <div className=\"sidebar-section\">
-                  <div className=\"section-title\"><Clock size={14} /> Timeframe Analysis</div>
-                  <div className=\"tf-tabs\">
+                <div className="sidebar-section">
+                  <div className="section-title"><Clock size={14} /> Timeframe Analysis</div>
+                  <div className="tf-tabs">
                     {TIMEFRAMES.map(tf => {
                       const conf = results?.timeframes?.[tf]?.confidence;
                       return (
                         <button key={tf} className={`tf-tab ${activeTimeframe === tf ? 'active' : ''}`} onClick={() => setActiveTimeframe(tf)}>
-                          <span className=\"tf-tab-label\">{tf}</span>
+                          <span className="tf-tab-label">{tf}</span>
                           {conf !== undefined && <span className={`tf-tab-conf ${conf >= 75 ? 'high' : conf >= 50 ? 'mid' : 'low'}`}>{conf}%</span>}
                         </button>
                       );
@@ -395,25 +395,25 @@ function App() {
                   </div>
                 </div>
                 {activeResult && (
-                  <div className=\"sidebar-section\">
-                    <div className=\"confidence-container\">
-                      <div className=\"confidence-header\">
+                  <div className="sidebar-section">
+                    <div className="confidence-container">
+                      <div className="confidence-header">
                         <span>Confidence ({activeTimeframe})</span>
                         <span style={{ color: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}>{activeResult.confidence}%</span>
                       </div>
-                      <div className=\"confidence-track\">
-                        <div className=\"confidence-fill\" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
+                      <div className="confidence-track">
+                        <div className="confidence-fill" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
                       </div>
                     </div>
-                    <div className=\"levels-grid\" style={{ marginTop: '16px' }}>
-                      <div className=\"level-card entry\"><span className=\"level-label\">Entry</span><span className=\"level-value\">{activeResult.entry}</span></div>
-                      <div className=\"level-card tp\"><span className=\"level-label\">T.Profit</span><span className=\"level-value\">{activeResult.takeProfit}</span></div>
-                      <div className=\"level-card sl\"><span className=\"level-label\">S.Loss</span><span className=\"level-value\">{activeResult.stopLoss}</span></div>
-                      <div className=\"level-card rr\"><span className=\"level-label\">R:R</span><span className=\"level-value\">{displayRR}</span></div>
+                    <div className="levels-grid" style={{ marginTop: '16px' }}>
+                      <div className="level-card entry"><span className="level-label">Entry</span><span className="level-value">{activeResult.entry}</span></div>
+                      <div className="level-card tp"><span className="level-label">T.Profit</span><span className="level-value">{activeResult.takeProfit}</span></div>
+                      <div className="level-card sl"><span className="level-label">S.Loss</span><span className="level-value">{activeResult.stopLoss}</span></div>
+                      <div className="level-card rr"><span className="level-label">R:R</span><span className="level-value">{displayRR}</span></div>
                     </div>
-                    <div className=\"trade-log-btns\" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                      <button className=\"log-btn win\" style={{ flex: 1 }} onClick={() => logTrade(true)}>Win</button>
-                      <button className=\"log-btn lose\" style={{ flex: 1 }} onClick={() => logTrade(false)}>Loss</button>
+                    <div className="trade-log-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                      <button className="log-btn win" style={{ flex: 1 }} onClick={() => logTrade(true)}>Win</button>
+                      <button className="log-btn lose" style={{ flex: 1 }} onClick={() => logTrade(false)}>Loss</button>
                     </div>
                   </div>
                 )}
@@ -421,39 +421,39 @@ function App() {
             )}
 
             {!results && !isAnalyzing && (
-              <div className=\"sidebar-section\" style={{ textAlign: 'center', padding: '24px 12px' }}>
+              <div className="sidebar-section" style={{ textAlign: 'center', padding: '24px 12px' }}>
                 <Activity size={32} style={{ opacity: 0.2, marginBottom: '12px' }} />
                 <h3 style={{ fontSize: '0.9rem', marginBottom: '8px' }}>System Ready</h3>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Institutional engine connected. Select asset and click analyze.</p>
               </div>
             )}
 
-            <div className=\"sidebar-section\" style={{ marginTop: 'auto' }}>
-              <div className=\"section-title\"><BarChart3 size={14} /> Performance</div>
-              <div className=\"stats-grid\">
-                <div className=\"stat-item\"><span className=\"stat-label\">P&L</span><span className=\"stat-value\">₹{accountStats.pnl.toFixed(0)}</span></div>
-                <div className=\"stat-item\"><span className=\"stat-label\">Win Rate</span><span className=\"stat-value\">{winRate}%</span></div>
+            <div className="sidebar-section" style={{ marginTop: 'auto' }}>
+              <div className="section-title"><BarChart3 size={14} /> Performance</div>
+              <div className="stats-grid">
+                <div className="stat-item"><span className="stat-label">P&L</span><span className="stat-value">₹{accountStats.pnl.toFixed(0)}</span></div>
+                <div className="stat-item"><span className="stat-label">Win Rate</span><span className="stat-value">{winRate}%</span></div>
               </div>
             </div>
 
-            <div className=\"sidebar-footer\" style={{ padding: '12px', textAlign: 'center', fontSize: '0.6rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--surface-border)' }}>
+            <div className="sidebar-footer" style={{ padding: '12px', textAlign: 'center', fontSize: '0.6rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--surface-border)' }}>
               <ShieldAlert size={10} style={{ display: 'inline', marginRight: '4px', color: 'var(--accent-color)' }} />
               <strong>AlphaVision Core</strong> | Education only. Not financial advice.
             </div>
           </div>
         </aside>
 
-        <section className=\"workspace-panel\">
+        <section className="workspace-panel">
           {inputMode === 'direct' ? (
-            <div className=\"tv-widget-container\">
+            <div className="tv-widget-container">
               <iframe 
                 src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(getTvSymbol())}&interval=${getTvInterval()}&theme=${theme === 'dark' ? 'dark' : 'light'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
-                width=\"100%\" height=\"100%\" frameBorder=\"0\" allowFullScreen title=\"Live Chart\"
+                width="100%" height="100%" frameBorder="0" allowFullScreen title="Live Chart"
               ></iframe>
             </div>
           ) : (
-            <div className=\"upload-zone\" onClick={() => fileInputRef.current?.click()} style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-              <input type=\"file\" ref={fileInputRef} onChange={handleFileChange} accept=\"image/*\" style={{ display: 'none' }} />
+            <div className="upload-zone" onClick={() => fileInputRef.current?.click()} style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
               {!image ? (
                 <>
                   <UploadCloud size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
@@ -461,13 +461,13 @@ function App() {
                   <p>Click to browse or drop file here</p>
                 </>
               ) : (
-                <img src={image} alt=\"Preview\" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                <img src={image} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               )}
             </div>
           )}
           
           {activeResult && (
-            <div className=\"analysis-overlay\" style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px', background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+            <div className="analysis-overlay" style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px', background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
               <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>INSTITUTIONAL ANALYSIS — {activeTimeframe}</h4>
               <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{activeResult.analysis}</p>
               {results.liveContext && <p style={{ marginTop: '8px', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--accent-color)' }}>{results.liveContext}</p>}
@@ -477,26 +477,26 @@ function App() {
       </main>
 
       {showSettings && (
-        <div className=\"modal-overlay\" onClick={() => setShowSettings(false)}>
-          <div className=\"modal-content\" onClick={e => e.stopPropagation()}>
-            <div className=\"modal-header\">
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
               <h3>Settings</h3>
-              <button className=\"icon-btn\" onClick={() => setShowSettings(false)}><X size={20} /></button>
+              <button className="icon-btn" onClick={() => setShowSettings(false)}><X size={20} /></button>
             </div>
-            <div className=\"form-group\">
+            <div className="form-group">
               <label>AI Provider</label>
               <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value)}>
-                <option value=\"gemini\">Gemini</option>
-                <option value=\"groq\">Groq</option>
-                <option value=\"openrouter\">OpenRouter</option>
-                <option value=\"pollinations\">Pollinations</option>
+                <option value="gemini">Gemini</option>
+                <option value="groq">Groq</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="pollinations">Pollinations</option>
               </select>
             </div>
-            <div className=\"form-group\">
+            <div className="form-group">
               <label>TwelveData API Key</label>
-              <input type=\"password\" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({...apiKeys, twelvedata: e.target.value})} />
+              <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({...apiKeys, twelvedata: e.target.value})} />
             </div>
-            <button className=\"btn-primary\" style={{ marginTop: '16px' }} onClick={() => setShowSettings(false)}>Save</button>
+            <button className="btn-primary" style={{ marginTop: '16px' }} onClick={() => setShowSettings(false)}>Save</button>
           </div>
         </div>
       )}
