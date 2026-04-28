@@ -300,6 +300,10 @@ function App() {
   };
 
   const getTvSymbol = () => {
+    // TradingView's free widget often fails with NSE: or BSE: prefixes for indices.
+    // We strip the prefix for Indian exchanges to allow TV to auto-resolve correctly.
+    if (exchange === 'NSE' || exchange === 'BSE') return directAsset;
+    
     if (exchange) return `${exchange}:${directAsset}`;
     return directAsset;
   };
