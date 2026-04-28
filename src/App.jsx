@@ -22,12 +22,12 @@ const EXCHANGES = [
 ];
 
 const QUICK_PICKS = [
-  { label: 'NIFTY', symbol: 'NIFTY', exchange: '' },
-  { label: 'BANKNIFTY', symbol: 'BANKNIFTY', exchange: '' },
-  { label: 'SENSEX', symbol: 'SENSEX', exchange: 'BSE' },
+  { label: 'NIFTY', symbol: 'NIFTY', exchange: 'NSE' },
+  { label: 'BANKNIFTY', symbol: 'BANKNIFTY', exchange: 'NSE' },
   { label: 'BTC', symbol: 'BTCUSDT', exchange: 'BINANCE' },
   { label: 'GOLD', symbol: 'GOLD', exchange: 'COMEX' },
-  { label: 'SPX', symbol: 'SPX', exchange: '' },
+  { label: 'NDX (Nasdaq)', symbol: 'NDX', exchange: 'NASDAQ' },
+  { label: 'US30 (Dow)', symbol: 'US30', exchange: 'NYSE' },
 ];
 
 function App() {

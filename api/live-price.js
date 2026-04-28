@@ -44,9 +44,28 @@ export default async function handler(req, res) {
     } catch (e) { /* fall through */ }
   }
 
-  // ── Everything else via Yahoo Finance ─────────────────────────────────────
+  // ── Everything else via Yahoo Finance (Global Markets) ──────────────────
   const YAHOO_MAP = {
-    SENSEX: '^BSESN', GOLD: 'GC=F', XAUUSD: 'GC=F', SPX: '^GSPC', SP500: '^GSPC',
+    // India
+    SENSEX: '^BSESN',
+    // US Indices
+    SPX: '^GSPC', SP500: '^GSPC',
+    NDX: '^NDX', NASDAQ: '^IXIC',
+    DJI: '^DJI', DOW: '^DJI', US30: '^DJI',
+    RUT: '^RUT', RUSSELL: '^RUT',
+    VIX: '^VIX',
+    // Global Indices
+    FTSE: '^FTSE', UK100: '^FTSE',
+    DAX: '^GDAXI', GER40: '^GDAXI',
+    CAC: '^FCHI', FRA40: '^FCHI',
+    N225: '^N225', NIKKEI: '^N225',
+    HSI: '^HSI', HANGSENG: '^HSI',
+    // Forex & Commodities
+    DXY: 'DX-Y.NYB',
+    GOLD: 'GC=F', XAUUSD: 'GC=F',
+    SILVER: 'SI=F', XAGUSD: 'SI=F',
+    OIL: 'CL=F', WTI: 'CL=F', USOIL: 'CL=F',
+    NG: 'NG=F', NATGAS: 'NG=F'
   };
   const yahooSym = YAHOO_MAP[upper] ?? upper;
   try {
