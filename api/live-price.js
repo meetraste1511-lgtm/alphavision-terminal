@@ -20,9 +20,10 @@ export default async function handler(req, res) {
         `https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/NSE/segment/CASH/${GROWW_MAP[upper]}/latest`
       );
       const d = await r.json();
+      const val = parseFloat(d.value ?? d.close);
       return res.json({
         symbol: upper,
-        price: parseFloat(d.value ?? d.close).toFixed(2),
+        price: isNaN(val) ? '0.00' : val.toFixed(2),
         open:  parseFloat(d.open  ?? d.close).toFixed(2),
         high:  parseFloat(d.high  ?? d.close).toFixed(2),
         low:   parseFloat(d.low   ?? d.close).toFixed(2),
@@ -40,7 +41,9 @@ export default async function handler(req, res) {
     try {
       const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binSym}`);
       const d = await r.json();
-      return res.json({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Binance' });
+      if (d.price && !isNaN(parseFloat(d.price))) {
+        return res.json({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Binance' });
+      }
     } catch (e) { /* fall through */ }
   }
 

@@ -72,21 +72,30 @@
   }
 
   /* Fix the timeframes row to scroll horizontally if needed */
-  .timeframe-tabs {
-    flex-wrap: nowrap !important;
+  .tf-tabs {
+    display: flex !important;
     overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
     padding-bottom: 8px !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
-  /* Make sure the quick picks are easily tappable */
-  .quick-picks {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 6px !important;
+  .tf-tab {
+    flex-shrink: 0 !important;
+    min-width: 70px !important;
   }
   
-  .qp-btn {
-    padding: 8px 4px !important;
-    font-size: 0.7rem !important;
+  /* Levels Grid 2x2 */
+  .levels-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
+
+  /* Footer fixed at bottom */
+  .sidebar-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 60px) !important;
+  }
+  .sidebar-content {
 }

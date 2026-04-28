@@ -137,7 +137,7 @@ function App() {
         const r = await fetch(`/api/live-price?symbol=${directAsset}`);
         if (r.ok) {
           const d = await r.json();
-          if (!cancelled && d.price) { 
+          if (!cancelled && d.price && d.price !== 'NaN') { 
             setLivePrice(d.price); 
             setLivePriceSource(d.source || 'Verified Source');
             return; 
@@ -147,7 +147,7 @@ function App() {
 
       try {
         const ctx = await getMarketContext(directAsset, exchange, activeTimeframe, apiKeys.twelvedata);
-        if (!cancelled && ctx.lastPrice) {
+        if (!cancelled && ctx.lastPrice && !isNaN(parseFloat(ctx.lastPrice))) {
           setLivePrice(ctx.lastPrice);
           setLivePriceSource('TwelveData');
         }
@@ -479,7 +479,7 @@ function App() {
             </div>
 
             {/* Legal Trust Shield Footer */}
-            <div style={{ padding: '16px 20px', marginTop: 'auto', borderTop: '1px solid var(--surface-border)', fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: '1.4', textAlign: 'center' }}>
+            <div style={{ padding: '16px 20px', borderTop: '1px solid var(--surface-border)', fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: '1.4', textAlign: 'center', background: 'var(--bg-color)' }}>
               <ShieldAlert size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: 'var(--accent-color)' }} />
               <strong>AlphaVision Core</strong> is a quantitative analysis tool. All outputs are for educational paper-trading simulation only. Not SEBI registered financial advice.
             </div>
