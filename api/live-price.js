@@ -13,8 +13,11 @@ export default async function handler(req, res) {
   const upper = symbol.toUpperCase();
   const tf = timeframe || '1H';
 
-  // ── Indian Indices via Groww ───────────────────────────────────────────────
+  // ── Indian Indices via Groww (Real-time price) ───────────────────────────
   const GROWW_MAP = { NIFTY: 'NIFTY', BANKNIFTY: 'BANKNIFTY', FINNIFTY: 'FINNIFTY' };
+  let livePrice = null;
+  let liveStats = {};
+
   if (GROWW_MAP[upper]) {
     try {
       const r = await fetch(
@@ -25,15 +28,15 @@ export default async function handler(req, res) {
         const rawVal = d.value ?? d.close;
         const val = parseFloat(rawVal);
         if (!isNaN(val) && val > 0) {
-          return res.json({
-            symbol: upper,
-            price: val.toFixed(2),
+          livePrice = val.toFixed(2);
+          liveStats = {
             open:  parseFloat(d.open  ?? rawVal).toFixed(2),
             high:  parseFloat(d.high  ?? rawVal).toFixed(2),
             low:   parseFloat(d.low   ?? rawVal).toFixed(2),
-            close: parseFloat(d.close ?? rawVal).toFixed(2),
-            source: 'Groww',
-          });
+            close: parseFloat(d.close ?? rawVal).toFixed(2)
+          };
+          // If ONLY price is needed (not OHLC), return now
+          if (!ohlc) return res.json({ symbol: upper, price: livePrice, ...liveStats, source: 'Groww' });
         }
       }
     } catch (e) { console.error('Groww Error:', e.message); }
@@ -79,22 +82,30 @@ export default async function handler(req, res) {
     if (r.ok) {
       const d = await r.json();
       const meta = d.chart?.result?.[0]?.meta;
-      const result = d.chart?.result?.[0];
-      const price = meta?.regularMarketPrice ?? meta?.previousClose;
+      const yahooResult = d.chart?.result?.[0];
+      const yahooPrice = meta?.regularMarketPrice ?? meta?.previousClose;
+      const finalPrice = livePrice || parseFloat(yahooPrice).toFixed(2);
       
-      if (ohlc && result) {
-        const timestamps = result.timestamp ?? [];
-        const quote = result.indicators?.quote?.[0] ?? {};
+      if (ohlc && yahooResult) {
+        const timestamps = yahooResult.timestamp ?? [];
+        const quote = yahooResult.indicators?.quote?.[0] ?? {};
         const rows = [];
         for (let i = timestamps.length - 1; i >= Math.max(0, timestamps.length - 30); i--) {
           if (quote.close?.[i]) {
             rows.push(`${new Date(timestamps[i] * 1000).toISOString()} | O:${parseFloat(quote.open[i]).toFixed(2)} H:${parseFloat(quote.high[i]).toFixed(2)} L:${parseFloat(quote.low[i]).toFixed(2)} C:${parseFloat(quote.close[i]).toFixed(2)}`);
           }
         }
-        return res.json({ symbol: upper, price: parseFloat(price).toFixed(2), data: rows.join('\n'), source: 'Yahoo' });
+        
+        // Inject real-time Groww anchor if available
+        let finalData = rows.join('\n');
+        if (livePrice) {
+          finalData = `⚡ REAL-TIME ANCHOR (Groww): ${livePrice} | O:${liveStats.open} H:${liveStats.high} L:${liveStats.low}\n` + finalData;
+        }
+
+        return res.json({ symbol: upper, price: finalPrice, data: finalData, source: livePrice ? 'Groww+Yahoo' : 'Yahoo' });
       }
 
-      if (price) return res.json({ symbol: upper, price: parseFloat(price).toFixed(2), source: 'Yahoo' });
+      if (finalPrice) return res.json({ symbol: upper, price: finalPrice, source: livePrice ? 'Groww' : 'Yahoo' });
     }
   } catch (e) { console.error('Yahoo Error:', e.message); }
 

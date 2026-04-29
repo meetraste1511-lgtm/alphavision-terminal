@@ -129,10 +129,10 @@ function App() {
   useEffect(() => {
     if (inputMode !== 'direct' || !directAsset.trim()) return;
     let cancelled = false;
-    setLivePrice(null);
-    setLivePriceFetching(true);
+    let intervalId = null;
 
-    const fetchPrice = async () => {
+    const fetchPrice = async (isSilent = false) => {
+      if (!isSilent) setLivePriceFetching(true);
       try {
         const proxyUrl = `/api/live-price?symbol=${directAsset}&exchange=${exchange}&timeframe=${activeTimeframe}`;
         const r = await fetch(proxyUrl);
@@ -144,20 +144,26 @@ function App() {
             return;
           }
         }
-      } catch (e) { console.error('Proxy Fetch Error:', e); }
-
-      try {
-        const ctx = await getMarketContext(directAsset, exchange, activeTimeframe, apiKeys.twelvedata);
-        if (!cancelled && ctx.lastPrice && !isNaN(parseFloat(ctx.lastPrice))) {
-          setLivePrice(ctx.lastPrice);
-          setLivePriceSource('TwelveData');
-        }
-      } catch { /* ignore */ }
+      } catch (e) { 
+        if (!isSilent) console.error('Proxy Fetch Error:', e); 
+      } finally {
+        if (!isSilent) setLivePriceFetching(false);
+      }
     };
 
-    fetchPrice().finally(() => { if (!cancelled) setLivePriceFetching(false); });
-    return () => { cancelled = true; };
-  }, [directAsset, exchange]);
+    // Initial fetch
+    fetchPrice();
+
+    // High-frequency polling (1s interval as requested)
+    intervalId = setInterval(() => {
+      fetchPrice(true);
+    }, 1000);
+
+    return () => { 
+      cancelled = true; 
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [directAsset, exchange, inputMode]);
 
   const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = () => setIsDragging(false);
@@ -252,10 +258,12 @@ function App() {
   };
 
   const getTvSymbol = () => {
-    if (directAsset === 'NIFTY') return 'NSE:NIFTY';
-    if (directAsset === 'BANKNIFTY') return 'NSE:BANKNIFTY';
-    if (exchange) return `${exchange}:${directAsset}`;
-    return directAsset;
+    const up = directAsset.toUpperCase();
+    if (up === 'NIFTY') return 'NSE:NIFTY';
+    if (up === 'BANKNIFTY') return 'NSE:BANKNIFTY';
+    if (up === 'FINNIFTY') return 'NSE:FINNIFTY';
+    if (exchange) return `${exchange}:${up}`;
+    return up;
   };
 
   const activeResult = results?.timeframes?.[activeTimeframe];
