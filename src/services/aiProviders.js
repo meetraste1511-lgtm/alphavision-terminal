@@ -48,29 +48,16 @@ You must return ONLY a valid JSON object matching exactly this structure. Do not
 /**
  * Gemini Provider (Built-in web search option)
  */
-async function callGemini(apiKey, prompt, imageBase64) {
-  const parts = [{ text: prompt }];
-  if (imageBase64) {
-    parts.push({ inlineData: { mimeType: 'image/jpeg', data: imageBase64 } });
-  }
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${apiKey}`, {
+async function callGemini(prompt, userId, symbol) {
+  const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
-    })
+    body: JSON.stringify({ prompt, userId, symbol })
   });
 
   const data = await response.json();
-  if (!response.ok || data.error) throw new Error(data.error?.message || 'Failed to analyze via Gemini');
-
-  let resultText = '';
-  for (const part of data.candidates[0].content.parts) {
-    if (part.text) resultText += part.text;
-  }
-  return resultText;
+  if (!response.ok) throw new Error(data.error || 'Failed to analyze via Institutional API');
+  return data.result;
 }
 
 /**
@@ -148,7 +135,7 @@ async function callPollinations(prompt) {
 /**
  * Main Analysis Entry Point
  */
-export async function analyzeWithProvider(provider, keys, config) {
+export async function analyzeWithProvider(provider, keys, config, userId) {
   const { tradeType, tradeStyle, assetName, riskPercent, marketDataText, currentPrice, imageBase64, isImageMode } = config;
   
   const systemPrompt = getSystemPrompt(tradeType, tradeStyle, assetName, riskPercent);
@@ -172,8 +159,7 @@ export async function analyzeWithProvider(provider, keys, config) {
   let rawResponse = '';
   switch (provider) {
     case 'gemini':
-      if (!keys.gemini) throw new Error("Gemini API key is missing. Add it in Settings.");
-      rawResponse = await callGemini(keys.gemini, finalPrompt, imageBase64);
+      rawResponse = await callGemini(finalPrompt, userId, assetName);
       break;
     case 'groq':
       if (!keys.groq) throw new Error("Groq API key is missing. Add it in Settings.");

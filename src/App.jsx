@@ -218,7 +218,7 @@ function App() {
         isImageMode: inputMode === 'image'
       };
 
-      const parsed = await analyzeWithProvider(aiProvider, apiKeys, config);
+      const parsed = await analyzeWithProvider(aiProvider, apiKeys, config, session?.user?.id);
       setResults(parsed);
       retryCount.current = 0;
     } catch (err) {
@@ -281,9 +281,25 @@ function App() {
     localStorage.setItem('av_stats', JSON.stringify(newStats));
   };
 
-  const logTrade = (won) => {
+  const logTrade = async (won) => {
     if (!activeResult) return;
+    const status = won ? 'validated' : 'invalidated';
     const profit = won ? potentialProfit : -potentialLoss;
+    
+    // 🧠 Autonomous Learning Loop: Save to Supabase for AI Hardening
+    try {
+      await supabase.from('ai_training_logs').insert({
+        user_id: session?.user?.id,
+        symbol: directAsset,
+        market_context: results.liveContext || '',
+        ai_analysis: activeResult.analysis,
+        status: status,
+        timeframe: activeTimeframe
+      });
+    } catch (e) {
+      console.warn('Failed to save learning data:', e.message);
+    }
+
     const newStats = {
       wins: accountStats.wins + (won ? 1 : 0),
       losses: accountStats.losses + (won ? 0 : 1),
