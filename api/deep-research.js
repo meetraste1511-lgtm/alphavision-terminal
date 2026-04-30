@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       details: 'The research signal was lost in transit. Please refresh the terminal and re-type the query.' 
     });
   }
-  if (!activeKey) return res.status(400).json({ error: 'Gemini API Key missing' });
+  // Removed premature strict check for Gemini API key to allow OpenRouter and offline fallbacks.
 
   try {
     const systemPrompt = `
