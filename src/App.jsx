@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react'; // AV-LABS Core Active
+import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers } from 'lucide-react';
 import { getMarketContext } from './services/marketData';
 import { analyzeWithProvider } from './services/aiProviders';
 import { supabase } from './supabaseClient';
@@ -7,6 +7,9 @@ import Auth from './components/Auth';
 import Paywall from './components/Paywall';
 import Portfolio from './components/Portfolio';
 import Disclaimer from './components/Disclaimer';
+import Journal from './components/Journal';
+import NewsPanel from './components/NewsPanel';
+import IntelligenceLab from './components/IntelligenceLab';
 import './App.css';
 import './mobile.css';
 
@@ -34,11 +37,11 @@ const QUICK_PICKS = [
 
 function App() {
   const [inputMode, setInputMode] = useState('direct');
-  const [directAsset, setDirectAsset] = useState('NIFTY');
-  const [exchange, setExchange] = useState('NSE');
-  const [activeTimeframe, setActiveTimeframe] = useState('1H');
+  const [directAsset, setDirectAsset] = useState(localStorage.getItem('av_asset') || 'NIFTY');
+  const [chartSymbol, setChartSymbol] = useState(localStorage.getItem('av_asset') || 'NIFTY');
+  const [exchange, setExchange] = useState(localStorage.getItem('av_exchange') || 'NSE');
+  const [activeTimeframe, setActiveTimeframe] = useState(localStorage.getItem('av_timeframe') || '1H');
   const [riskPercent, setRiskPercent] = useState(localStorage.getItem('av_risk_pct') || '1');
-  const [tradeType, setTradeType] = useState('long');
   const [tradeStyle, setTradeStyle] = useState('scalp');
   const [capital, setCapital] = useState(localStorage.getItem('av_capital') || '100000');
   const [manualPrice, setManualPrice] = useState('');
@@ -61,13 +64,31 @@ function App() {
     twelvedata: localStorage.getItem('av_twelvedata_key') || import.meta.env.VITE_TWELVEDATA_API_KEY || ''
   });
   
+  const [syncChartTheme, setSyncChartTheme] = useState(() => {
+    const saved = localStorage.getItem('av_sync_chart');
+    return saved === null ? true : JSON.parse(saved);
+  });
   const [aiProvider, setAiProvider] = useState(localStorage.getItem('av_ai_provider') || 'gemini');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [showSettings, setShowSettings] = useState(false);
   const [showPortfolio, setShowPortfolio] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
+  const [showNews, setShowNews] = useState(true);
+  const [showIntelligenceLab, setShowIntelligenceLab] = useState(false);
   const [session, setSession] = useState(null);
+  const [wsPrice, setWsPrice] = useState(null);
+  const wsRef = useRef(null);
   const [hasAccess, setHasAccess] = useState(true);
+  const [settingsSaved, setSettingsSaved] = useState(false);
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
+
+  const handleSaveSettings = () => {
+    setSettingsSaved(true);
+    setTimeout(() => {
+      setSettingsSaved(false);
+      setShowSettings(false);
+    }, 800);
+  };
 
   const checkAccess = async (user) => {
     if (!user) return;
@@ -117,11 +138,33 @@ function App() {
   }, [theme]);
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('av_last_results')); }
+    catch { return null; }
+  });
   const [error, setError] = useState('');
   const [livePrice, setLivePrice] = useState(null);
   const [livePriceSource, setLivePriceSource] = useState('');
   const [livePriceFetching, setLivePriceFetching] = useState(false);
+
+  // Persist results across re-renders (theme toggles)
+  useEffect(() => {
+    if (results) localStorage.setItem('av_last_results', JSON.stringify(results));
+    else localStorage.removeItem('av_last_results');
+  }, [results]);
+
+  // Persist Workspace state
+  useEffect(() => {
+    localStorage.setItem('av_asset', directAsset);
+    localStorage.setItem('av_exchange', exchange);
+    localStorage.setItem('av_timeframe', activeTimeframe);
+  }, [directAsset, exchange, activeTimeframe]);
+
+  // Reset live price when asset changes to avoid stale data
+  useEffect(() => {
+    setLivePrice(null);
+    setLivePriceSource('');
+  }, [directAsset, exchange]);
   
   const fileInputRef = useRef(null);
   const retryCount = useRef(0);
@@ -131,7 +174,35 @@ function App() {
     let cancelled = false;
     let intervalId = null;
 
+    // ── Binance WebSocket Stream (Real-time & Zero Rate Limit) ──────────────
+    if (wsRef.current) {
+      wsRef.current.close();
+      setWsPrice(null);
+    }
+
+    const cryptoSymbols = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'DOT', 'PEPE', 'SHIB'];
+    const isCrypto = cryptoSymbols.some(s => directAsset.toUpperCase().includes(s)) || directAsset.toUpperCase().endsWith('USDT') || exchange === 'BINANCE';
+
+    if (isCrypto) {
+      const cleanSymbol = directAsset.toUpperCase().replace('USDT', '').toLowerCase() + 'usdt';
+      const wsUrl = `wss://stream.binance.com:9443/ws/${cleanSymbol}@ticker`;
+      
+      const ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.c && !cancelled) {
+          const p = parseFloat(data.c).toFixed(2);
+          setWsPrice(p);
+          setLivePrice(p);
+          setLivePriceSource('Binance Stream');
+        }
+      };
+      wsRef.current = ws;
+    }
+
     const fetchPrice = async (isSilent = false) => {
+      // PRO-PRIORITY: If high-speed stream is active, absolute block on background polling to prevent jitter.
+      if (wsPrice) return;
       if (!isSilent) setLivePriceFetching(true);
       try {
         const proxyUrl = `/api/live-price?symbol=${directAsset}&exchange=${exchange}&timeframe=${activeTimeframe}`;
@@ -161,7 +232,11 @@ function App() {
 
     return () => { 
       cancelled = true; 
-      if (intervalId) clearInterval(intervalId);
+      clearInterval(intervalId);
+      if (wsRef.current) {
+        wsRef.current.close();
+        setWsPrice(null);
+      }
     };
   }, [directAsset, exchange, inputMode]);
 
@@ -214,7 +289,6 @@ function App() {
       }
 
       const config = {
-        tradeType,
         tradeStyle,
         assetName,
         riskPercent,
@@ -229,7 +303,7 @@ function App() {
       retryCount.current = 0;
     } catch (err) {
       console.error(err);
-      const msg = err.message || '';
+      const msg = String(err?.message || err || 'Unknown Error');
       if ((msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('rate') || msg.includes('429')) && retryCount.current < 1) {
         retryCount.current += 1;
         const retryMatch = msg.match(/retry in (\d+(\.\d+)?)/i);
@@ -277,6 +351,7 @@ function App() {
   const slDistance = entry && sl ? Math.abs(entry - sl) : 0;
   const tpDistance = entry && tp ? Math.abs(tp - entry) : 0;
   const calculatedRR = slDistance > 0 && tpDistance > 0 ? (tpDistance / slDistance).toFixed(2) : 0;
+  const isInstitutionalGrade = parseFloat(calculatedRR) >= 2.5;
   const displayRR = calculatedRR > 0 ? `1:${calculatedRR}` : (activeResult?.riskReward || '—');
   const rawPositionSize = slDistance > 0 ? (riskAmount / slDistance) : 0;
   const positionSize = rawPositionSize > 100 ? Math.floor(rawPositionSize) : Number(rawPositionSize.toFixed(4));
@@ -318,7 +393,16 @@ function App() {
   };
 
   const resetStats = () => saveStats({ wins: 0, losses: 0, pnl: 0, trades: [] });
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    // If user is moving to light mode, ensure chart follows for 'correct' behavior
+    if (newTheme === 'light' && !syncChartTheme) {
+      setSyncChartTheme(true);
+      localStorage.setItem('av_sync_chart', 'true');
+    }
+  };
+
 
   if (!session) return <Auth onLogin={setSession} />;
   if (!hasAccess && session?.user?.email !== ADMIN_EMAIL) return <Paywall userEmail={session.user.email} />;
@@ -336,9 +420,21 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
+          <button className="btn-pitch" onClick={() => setShowJournal(true)}>
+            <BookOpen size={14} style={{ marginRight: '6px' }} />
+            Command Journal
+          </button>
           <button className="btn-pitch" onClick={() => setShowPortfolio(true)}>
             <Zap size={14} style={{ marginRight: '6px' }} />
             Institutional Pitch
+          </button>
+          <button className="btn-pitch" onClick={() => setShowIntelligenceLab(true)}>
+            <Layers size={14} style={{ marginRight: '6px' }} />
+            Research Lab
+          </button>
+          <button className="btn-pitch" onClick={() => setShowNews(!showNews)}>
+            <Globe size={14} style={{ marginRight: '6px' }} />
+            Global Wire
           </button>
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
@@ -361,7 +457,16 @@ function App() {
                   </div>
                   <div className="form-group">
                     <label>Ticker Symbol</label>
-                    <input type="text" value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" style={{ flex: 1 }} value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
+                      <button 
+                        className={`sync-btn ${chartSymbol === directAsset ? 'active' : ''}`}
+                        title="Sync Chart to Ticker"
+                        onClick={() => setChartSymbol(directAsset)}
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                    </div>
                   </div>
                   <div className="quick-picks">
                     {QUICK_PICKS.map(qp => (
@@ -372,14 +477,7 @@ function App() {
               )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Side</label>
-                  <select value={tradeType} onChange={(e) => setTradeType(e.target.value)}>
-                    <option value="long">Long</option>
-                    <option value="short">Short</option>
-                  </select>
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Style</label>
+                  <label>Trade Style</label>
                   <select value={tradeStyle} onChange={(e) => setTradeStyle(e.target.value)}>
                     <option value="scalp">Scalp</option>
                     <option value="swing">Swing</option>
@@ -441,7 +539,10 @@ function App() {
                       <div className="level-card entry"><span className="level-label">Entry</span><span className="level-value">{activeResult.entry}</span></div>
                       <div className="level-card tp"><span className="level-label">T.Profit</span><span className="level-value">{activeResult.takeProfit}</span></div>
                       <div className="level-card sl"><span className="level-label">S.Loss</span><span className="level-value">{activeResult.stopLoss}</span></div>
-                      <div className="level-card rr"><span className="level-label">R:R</span><span className="level-value">{displayRR}</span></div>
+                      <div className={`level-card rr ${isInstitutionalGrade ? 'institutional' : ''}`}>
+                        <span className="level-label">{isInstitutionalGrade ? 'INSTITUTIONAL R:R' : 'R:R Ratio'}</span>
+                        <span className="level-value">{displayRR}</span>
+                      </div>
                     </div>
                     <div className="trade-log-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
                       <button className="log-btn win" style={{ flex: 1 }} onClick={() => logTrade(true)}>Validated</button>
@@ -479,8 +580,7 @@ function App() {
           {inputMode === 'direct' ? (
             <div className="tv-widget-container">
               <iframe 
-                key={getTvSymbol() + getTvInterval()}
-                src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(getTvSymbol())}&interval=${getTvInterval()}&theme=${theme === 'dark' ? 'dark' : 'light'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
+                src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(chartSymbol === 'NIFTY' ? 'NSE:NIFTY' : chartSymbol)}&interval=60&theme=${syncChartTheme ? (theme === 'dark' ? 'dark' : 'light') : 'dark'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
                 width="100%" height="100%" frameBorder="0" allowFullScreen title="Live Chart"
               ></iframe>
             </div>
@@ -500,13 +600,18 @@ function App() {
           )}
           
           {activeResult && (
-            <div className="analysis-overlay" style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px', background: 'var(--surface-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--surface-border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+            <div className="analysis-overlay">
+              <button className="close-analysis-btn" onClick={() => setResults(null)}>
+                <X size={16} />
+              </button>
               <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>INSTITUTIONAL ANALYSIS REPORT — {activeTimeframe}</h4>
               <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{activeResult.analysis}</p>
               {results.liveContext && <p style={{ marginTop: '8px', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--accent-color)' }}>{results.liveContext}</p>}
             </div>
           )}
         </section>
+
+        {showNews && <NewsPanel symbol={directAsset} />}
       </main>
 
       {showSettings && (
@@ -525,16 +630,38 @@ function App() {
                 <option value="pollinations">Pollinations</option>
               </select>
             </div>
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input type="checkbox" checked={syncChartTheme} onChange={(e) => {
+                setSyncChartTheme(e.target.checked);
+                localStorage.setItem('av_sync_chart', e.target.checked);
+              }} />
+              <label style={{ margin: 0 }}>Sync Chart with Theme (Note: Causes chart reload)</label>
+            </div>
             <div className="form-group">
-              <label>TwelveData API Key</label>
+              <label>Gemini API Key (Required for Research Lab)</label>
+              <input type="password" value={apiKeys.gemini} onChange={(e) => {
+                const newKeys = {...apiKeys, gemini: e.target.value};
+                setApiKeys(newKeys);
+                localStorage.setItem('av_gemini_key', e.target.value);
+              }} />
+            </div>
+            <div className="form-group">
+              <label>TwelveData API Key (Live Data)</label>
               <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({...apiKeys, twelvedata: e.target.value})} />
             </div>
-            <button className="btn-primary" style={{ marginTop: '16px' }} onClick={() => setShowSettings(false)}>Save</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+              <button className="btn-primary" onClick={handleSaveSettings}>
+                {settingsSaved ? 'Saved!' : 'Save Settings'}
+              </button>
+              {settingsSaved && <CheckCircle size={16} color="var(--success-color)" />}
+            </div>
           </div>
         </div>
       )}
 
       {showPortfolio && <Portfolio onClose={() => setShowPortfolio(false)} />}
+      {showJournal && <Journal session={session} onClose={() => setShowJournal(false)} />}
+      {showIntelligenceLab && <IntelligenceLab onClose={() => setShowIntelligenceLab(false)} />}
       <Disclaimer />
     </div>
   );

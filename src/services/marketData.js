@@ -216,7 +216,7 @@ export async function fetchOHLC(symbol, exchange, timeframe, apiKey, outputSize 
   
   try {
     // Try our proxy first (bypasses CORS and handles all routing)
-    const r = await fetch(`/api/live-price?symbol=${upperSymbol}&timeframe=${timeframe}&ohlc=true`);
+    const r = await fetch(`/api/live-price?symbol=${upperSymbol}&exchange=${exchange}&timeframe=${timeframe}&ohlc=true`);
     if (r.ok) {
       const d = await r.json();
       if (d.data) {

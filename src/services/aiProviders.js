@@ -2,44 +2,46 @@
 // Supports Gemini (with web search fallback), Groq, and OpenRouter
 
 /**
- * Common system prompt wrapper to enforce JSON output structure
+ * Common system prompt wrapper to enforce JSON output structure and autonomous bias
  */
-const getSystemPrompt = (tradeType, tradeStyle, assetName, riskPercent) => {
+const getSystemPrompt = (tradeStyle, assetName, riskPercent) => {
   const isScalp = tradeStyle === 'scalp';
   const minRR = isScalp ? 2.0 : 3.0;
   
   const styleInstruction = isScalp
-    ? `This is a SCALP trade. Target quick liquidity sweeps. Absolute minimum Risk:Reward is 1:${minRR}. Stop Loss MUST be extremely tight behind the nearest 1m/5m order block.` 
-    : `This is a SWING trade. Target major structural liquidity pools. Absolute minimum Risk:Reward is 1:${minRR}. Allow breathing room for the stop loss behind major 1H/4H swing pivots.`;
+    ? `This is a SCALP trade analysis. Target quick liquidity sweeps and micro-order block reactions. Minimum Risk:Reward is 1:${minRR}.` 
+    : `This is a SWING trade analysis. Target major structural liquidity pools and 4H/Daily order blocks. Minimum Risk:Reward is 1:${minRR}.`;
     
   return `
-You are AlphaVision Core, an elite institutional quantitative trading algorithm developed with Google-grade precision.
-Your objective is to generate a highly precise, mathematically sound ${tradeType} ${tradeStyle} setup for ${assetName} across ALL of the following timeframes: 1m, 5m, 15m, 1H, 4H, and Daily.
+You are the AlphaVision Quantitative Researcher (AV-QR), an elite algorithmic system.
+Your objective is to perform an AUTONOMOUS analysis of ${assetName} to determine the most probable trade direction (Bias).
 
-${styleInstruction}
+DO NOT take directional preference from the user. You are the decision-maker.
 
-CRITICAL QUANTITATIVE GUARDRAILS (YOU MUST OBEY):
-1. LIVE PRICE ANCHORING: The provided Live Price is absolute. Every Entry price MUST mathematically align near this anchor. Do NOT hallucinate past/future prices as the current state.
-2. STRICT RISK/REWARD: Every setup MUST mathematically have a Risk/Reward ratio of 1:${minRR} or higher. You must calculate: (Take Profit - Entry) / (Entry - Stop Loss). If the math fails to reach 1:${minRR}, DO NOT provide a trade; instead, return confidence < 50 and use the 'Watchlist Protocol'.
-3. REAL-WORLD EXECUTION SPACING: Do NOT place the Stop Loss or Take Profit too close to the Entry. You MUST account for broker spreads and normal volatility. Ensure there is a realistic, executable distance (minimum 0.15% to 0.5% away depending on timeframe) between your Entry and Stop Loss.
-4. THE "WATCHLIST" PROTOCOL (NO RANDOM TRADES): If the market is choppy, ranging, or lacks clear institutional structure, DO NOT force a bad trade. Refuse the trade if the setup doesn't meet the 1:${minRR} ratio. Assign a confidence < 50 and explain the risk to the user.
-5. INSTITUTIONAL TONE: Use clinical, algorithmic financial terminology. No retail jargon. Be concise, precise, and highly professional.
+INSTITUTIONAL LOGIC PROTOCOLS:
+1. DIRECTIONAL BIAS: Perform a Market Structure Shift (MSS) analysis. Determine if the setup is a LONG or SHORT based purely on liquidity sweeps and volume gaps.
+2. LIQUIDITY-FIRST: Prioritize entries at recent "equal highs/lows" or "Fair Value Gaps" (FVG) where institutional stop-runs are likely.
+3. LIVE PRICE ANCHOR: The absolute live current price right now is the ONLY valid starting point. All setups must be executable from this level.
+4. STRICT RISK/REWARD: Target a minimum R:R of 1:${minRR}. If the technical structure does not support this ratio, you MUST assign a confidence < 50.
+5. STYLE ADHERENCE: ${styleInstruction}
+6. TERMINAL TONE: Use clinical, monospaced-style financial terminology. Be concise, objective, and authoritative.
 
-JSON OUTPUT FORMAT:
-You must return ONLY a valid JSON object matching exactly this structure. Do not wrap it in markdown blockquotes.
+JSON OUTPUT FORMAT (STRICT):
+Return ONLY a valid JSON object. No markdown, no conversational text.
 {
-  "liveContext": "A 2-sentence professional macro summary of current market conditions and structural bias.",
+  "liveContext": "AV-QR Context: Price is reacting to [Structural Level]. Bias is [AUTONOMOUS DIRECTION]. News/Sentiment: [Optional Context].",
   "timeframes": {
     "1m": {
-      "confidence": number (0-100),
-      "entry": "exact numerical price",
-      "stopLoss": "exact numerical price",
-      "takeProfit": "exact numerical price",
-      "riskReward": "ratio string e.g. 1:3.2",
-      "estimatedTime": "approx time to trigger",
-      "analysis": "Clinical analysis: Structural bias is [Direction]. Entry triggered at [Level] targeting liquidity at [Level]. Invalidated if [Condition]."
+      "bias": "LONG/SHORT",
+      "confidence": number,
+      "entry": "numerical",
+      "stopLoss": "numerical",
+      "takeProfit": "numerical",
+      "riskReward": "1:X",
+      "estimatedTime": "duration",
+      "analysis": "AV-QR Analysis: MSS detected at [Level]. [Bias] entry at [Level] targeting liquidity at [Level]."
     },
-    // ... repeat identical structure for "5m", "15m", "1H", "4H", "Daily"
+    // ... repeat for 5m, 15m, 1H, 4H, Daily
   }
 }
 `;
@@ -107,8 +109,9 @@ async function callOpenRouter(apiKey, prompt) {
   if (!response.ok || data.error) throw new Error(data.error?.message || 'Failed to analyze via OpenRouter');
   
   // DeepSeek R1 returns thinking inside <think> tags, we need to strip it to get the JSON
-  let content = data.choices[0].message.content;
-  if (content.includes('</think>')) {
+  let content = data.choices[0]?.message?.content || "";
+  
+  if (content && typeof content === 'string' && content.includes('</think>')) {
     content = content.split('</think>')[1].trim();
   }
   return content;
@@ -136,9 +139,9 @@ async function callPollinations(prompt) {
  * Main Analysis Entry Point
  */
 export async function analyzeWithProvider(provider, keys, config, userId) {
-  const { tradeType, tradeStyle, assetName, riskPercent, marketDataText, currentPrice, imageBase64, isImageMode } = config;
+  const { tradeStyle, assetName, riskPercent, marketDataText, currentPrice, imageBase64, isImageMode } = config;
   
-  const systemPrompt = getSystemPrompt(tradeType, tradeStyle, assetName, riskPercent);
+  const systemPrompt = getSystemPrompt(tradeStyle, assetName, riskPercent);
   
   // Build final prompt
   let finalPrompt = systemPrompt;

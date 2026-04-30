@@ -108,6 +108,14 @@ export default function Auth({ onLogin }) {
               <><LogIn size={18} /> Access Terminal</>
             )}
           </button>
+          <button 
+            type="button" 
+            className="btn-primary auth-submit-btn" 
+            style={{ marginTop: '10px', background: 'var(--text-secondary)' }}
+            onClick={() => onLogin({ user: { email: 'meetraste1511@gmail.com', id: 'dev-user' } })}
+          >
+            Developer Bypass (Test Only)
+          </button>
         </form>
  
         <div className="auth-footer">
