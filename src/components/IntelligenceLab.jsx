@@ -108,7 +108,7 @@ const IntelligenceLab = ({ onClose }) => {
                   placeholder="e.g. NVIDIA 2025 GPU Demand vs Blackwell Delay..." 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && performResearch()}
+                  disabled
                 />
               </div>
             </div>
@@ -117,14 +117,14 @@ const IntelligenceLab = ({ onClose }) => {
               <label>Investment Horizon</label>
               <div className="horizon-toggle">
                 {['Scalp', 'Swing', 'Long Term'].map(h => (
-                  <button key={h} className={horizon === h ? 'active' : ''} onClick={() => setHorizon(h)}>{h}</button>
+                  <button key={h} className={horizon === h ? 'active' : ''} disabled>{h}</button>
                 ))}
               </div>
             </div>
 
             <div className="control-group">
               <label>Data Requirement</label>
-              <select value={requirement} onChange={(e) => setRequirement(e.target.value)}>
+              <select value={requirement} disabled>
                 <option value="Full Intelligence">Full Intelligence (All Data)</option>
                 <option value="Macro Context">Macro & Political Risk</option>
                 <option value="Fundamental Moat">Fundamentals & Moat</option>
@@ -132,9 +132,9 @@ const IntelligenceLab = ({ onClose }) => {
               </select>
             </div>
 
-            <button className="btn-run-research" onClick={performResearch} disabled={isSearching}>
-              {isSearching ? <Zap className="spinning" size={16} /> : <BookOpen size={16} />}
-              <span>{isSearching ? 'Ingesting Wires...' : 'Execute Deep Search'}</span>
+            <button className="btn-run-research" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+              <ShieldCheck size={16} />
+              <span>Feature In Development</span>
             </button>
           </div>
 
@@ -149,64 +149,23 @@ const IntelligenceLab = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="research-main">
-          {report ? (
-            <div className="report-content animate-fade-in">
-              <div className="report-header">
-                <div className="badge-live">LIVE INTEL</div>
-                <h1>RESEARCH DOSSIER: {query.toUpperCase()}</h1>
-                <div className="report-meta">Horizon: {horizon} | Intensity: {requirement}</div>
-              </div>
-              <div className="markdown-body">
-                <ResearchRenderer content={report} />
-              </div>
+        <div className="research-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <div className="research-placeholder config" style={{ textAlign: 'center', maxWidth: '600px' }}>
+            <Layers size={80} color="var(--accent-color)" style={{ opacity: 0.5, marginBottom: '24px' }} />
+            <h1 style={{ fontSize: '2rem', marginBottom: '16px', letterSpacing: '0.05em' }}>AV-LABS IS COMING SOON</h1>
+            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
+              We are currently re-architecting the backend intelligence engine for <strong>faster, more secure, and highly scalable</strong> AI research synthesis.
+            </p>
+            <div className="config-steps" style={{ textAlign: 'left', background: 'rgba(var(--accent-rgb), 0.05)', padding: '24px', borderRadius: '12px' }}>
+              <div style={{ marginBottom: '12px', fontWeight: 'bold', color: 'var(--accent-color)' }}>UPCOMING FEATURES:</div>
+              <div style={{ padding: '8px 0' }}>• Real-time Bloomberg & Reuters Terminal Integration</div>
+              <div style={{ padding: '8px 0' }}>• Sub-second Llama 3 70B Institutional Inferencing</div>
+              <div style={{ padding: '8px 0' }}>• Advanced Cryptographic Data Security</div>
             </div>
-          ) : error ? (
-            <div className="research-placeholder error">
-              <ShieldCheck size={64} color="var(--danger-color)" style={{ opacity: 0.5, marginBottom: '20px' }} />
-              <h2 style={{ color: 'var(--danger-color)' }}>INTELLIGENCE BLOCKAGE</h2>
-              <p>{error}</p>
-              <button className="btn-run-research" style={{ width: 'auto', marginTop: '20px' }} onClick={performResearch}>Retry Deep Search</button>
-            </div>
-          ) : isSearching ? (
-            <div className="research-placeholder loading">
-              <div className="search-status-bar">
-                <Globe className="spinning" size={24} color="var(--accent-color)" />
-                <div className="status-labels">
-                  <span className="status-main">{searchStatus}</span>
-                  <span className="status-sub">DIRECT GOOGLE GROUNDING ACTIVE</span>
-                </div>
-              </div>
-              <div className="search-live-logs">
-                {searchLogs.map(log => (
-                  <div key={log.id} className="log-item animate-slide-up">
-                    <span className="log-arrow">▶</span> {log.msg}
-                  </div>
-                ))}
-              </div>
-              <div className="neural-ping">
-                <div className="ping-dot pulse"></div>
-                <span>Establishing Institutional Research Tunnel...</span>
-              </div>
-            </div>
-          ) : !localStorage.getItem('av_gemini_key') ? (
-            <div className="research-placeholder config">
-              <ShieldCheck size={64} style={{ opacity: 0.2, marginBottom: '20px' }} />
-              <h2>INTELLIGENCE OFFLINE</h2>
-              <p>Grounding requires a Gemini API Key. Please configure it in Terminal Settings.</p>
-              <div className="config-steps">
-                <div>1. Open Settings (Top Right Icon)</div>
-                <div>2. Paste Gemini Key in the designated field</div>
-                <div>3. Click Save Settings to activate AV-LABS</div>
-              </div>
-            </div>
-          ) : (
-            <div className="research-placeholder ready">
-              <Globe size={64} style={{ opacity: 0.1, marginBottom: '20px' }} />
-              <h2>READY FOR SYNTHESIS</h2>
-              <p>Enter a query to begin deep institutional research.</p>
-            </div>
-          )}
+            <p style={{ marginTop: '32px', fontSize: '0.9rem', opacity: 0.5 }}>
+              Thank you for testing AlphaVision. Your feedback during this beta helps us build the ultimate trading terminal.
+            </p>
+          </div>
         </div>
       </div>
     </div>
