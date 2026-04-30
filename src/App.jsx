@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'; // AV-LABS Core Active
-import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers } from 'lucide-react';
+import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers, LogOut } from 'lucide-react';
 import { getMarketContext } from './services/marketData';
 import { analyzeWithProvider } from './services/aiProviders';
 import { supabase } from './supabaseClient';
@@ -439,7 +439,7 @@ function App() {
           </button>
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
-          <button className="icon-btn" onClick={() => supabase.auth.signOut()}><XCircle size={20} /></button>
+          <button className="icon-btn" onClick={() => supabase.auth.signOut()} title="Sign Out"><LogOut size={20} /></button>
         </div>
       </header>
 
