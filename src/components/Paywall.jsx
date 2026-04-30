@@ -1,15 +1,22 @@
-import React from 'react';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Lock, Mail, ShieldCheck, CheckCircle } from 'lucide-react';
 import './Auth.css';
 
 export default function Paywall({ userEmail }) {
-  // TODO: The user will provide their actual UPI and Email later
-  const UPI_ID = 'your_upi_id_here@upi'; 
-  const SUPPORT_EMAIL = 'your_new_email@gmail.com';
-  const AMOUNT = 999;
+  const [plan, setPlan] = useState('monthly');
+  
+  const UPI_ID = 'meetraste1511@okaxis'; 
+  const SUPPORT_EMAIL = 'meetraste1511@gmail.com';
+  
+  const plans = {
+    monthly: { amount: 1199, label: '1 Month', desc: '₹1,199 / month' },
+    quarterly: { amount: 3000, label: '3 Months', desc: '₹1,000 / month (Save ₹597)' }
+  };
+  
+  const currentAmount = plans[plan].amount;
   
   // Generate a standard UPI payment link that most Indian banking apps recognize
-  const upiLink = `upi://pay?pa=${UPI_ID}&pn=AlphaVision&am=${AMOUNT}&cu=INR`;
+  const upiLink = `upi://pay?pa=${UPI_ID}&pn=AlphaVision&am=${currentAmount}&cu=INR`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
 
   return (
@@ -19,13 +26,34 @@ export default function Paywall({ userEmail }) {
           <Lock size={48} color="var(--accent-color)" style={{ marginBottom: '16px' }} />
           <h2>Subscription Required</h2>
           <p className="auth-subtitle" style={{ marginTop: '8px' }}>
-            Your access to AlphaVision Terminal has expired or not been activated yet.
+            Choose an institutional plan to unlock AlphaVision Terminal.
           </p>
         </div>
 
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+          {Object.entries(plans).map(([key, data]) => (
+            <div 
+              key={key}
+              onClick={() => setPlan(key)}
+              style={{
+                flex: 1,
+                padding: '12px',
+                border: plan === key ? '2px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                background: plan === key ? 'rgba(41, 98, 255, 0.1)' : 'transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{data.label}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{data.desc}</div>
+            </div>
+          ))}
+        </div>
+
         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '12px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '1.4rem', color: 'var(--success-color)', marginBottom: '16px' }}>
-            ₹{AMOUNT} / month
+          <h3 style={{ fontSize: '1.8rem', color: 'var(--success-color)', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            ₹{currentAmount} <CheckCircle size={20} />
           </h3>
           
           <img 
@@ -44,7 +72,7 @@ export default function Paywall({ userEmail }) {
             <ShieldCheck size={18} color="var(--accent-color)"/> Activation Instructions
           </h4>
           <ol style={{ paddingLeft: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            <li>Scan the QR code above using GPay, PhonePe, or Paytm to pay ₹{AMOUNT}.</li>
+            <li>Scan the QR code above using GPay, PhonePe, or Paytm to pay <strong>₹{currentAmount}</strong>.</li>
             <li>Take a screenshot of the successful payment.</li>
             <li>Email the screenshot to <strong>{SUPPORT_EMAIL}</strong> from your registered email (<strong>{userEmail}</strong>).</li>
             <li>Your account will be manually unlocked within a few hours!</li>
