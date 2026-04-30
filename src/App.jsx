@@ -58,6 +58,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   
   const [apiKeys, setApiKeys] = useState({
+    openai: localStorage.getItem('av_openai_key') || '',
     gemini: localStorage.getItem('av_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY || '',
     groq: localStorage.getItem('av_groq_key') || import.meta.env.VITE_GROQ_API_KEY || '',
     openrouter: localStorage.getItem('av_openrouter_key') || import.meta.env.VITE_OPENROUTER_API_KEY || '',
@@ -645,7 +646,15 @@ function App() {
                 localStorage.setItem('av_gemini_key', e.target.value);
               }} />
             </div>
-            <div className="form-group">
+            <div className="control-group">
+              <label>OpenAI API Key (Official ChatGPT)</label>
+              <input type="password" value={apiKeys.openai || ''} onChange={(e) => {
+                const newKeys = {...apiKeys, openai: e.target.value};
+                setApiKeys(newKeys);
+                localStorage.setItem('av_openai_key', e.target.value);
+              }} />
+            </div>
+            <div className="control-group">
               <label>TwelveData API Key (Live Data)</label>
               <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({...apiKeys, twelvedata: e.target.value})} />
             </div>

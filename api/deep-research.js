@@ -18,8 +18,9 @@ export default async function handler(req, res) {
     try { body = JSON.parse(rawBody); } catch (e) { body = {}; }
   }
 
-  const { query, timeHorizon, dataRequirement, apiKey } = body;
+  const { query, timeHorizon, dataRequirement, apiKey, openaiKey } = body;
   const activeKey = apiKey || process.env.VITE_GEMINI_API_KEY;
+  const activeOpenAIKey = openaiKey || process.env.VITE_OPENAI_API_KEY;
 
   if (!query) {
     return res.status(400).json({ 
@@ -30,10 +31,12 @@ export default async function handler(req, res) {
   // Removed premature strict check for Gemini API key to allow OpenRouter and offline fallbacks.
 
   try {
+    const currentDate = new Date().toISOString().split('T')[0];
     const systemPrompt = `
       You are the Lead Quantitative Strategist at AlphaVision Capital (AV-SQA). 
       Generate a Tier-1 Institutional Investment Dossier for: "${query}".
-      
+      Today's date is: ${currentDate}. You must provide the most up-to-date and accurate market data available in your knowledge base.
+
       TIME HORIZON: ${timeHorizon}
       STRATEGIC FOCUS: ${dataRequirement}
 
@@ -52,6 +55,37 @@ export default async function handler(req, res) {
       5. STRATEGIC VERDICT (Conviction level 1-10)
     `;
     const openRouterKey = process.env.VITE_OPENROUTER_API_KEY;
+    
+    if (activeOpenAIKey) {
+      // Official OpenAI Integration
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${activeOpenAIKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o', // Using GPT-4o for the most recent knowledge cutoff
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Query: ${query}\nData Requirement: ${dataRequirement}\nHorizon: ${timeHorizon}` }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        const report = data.choices?.[0]?.message?.content;
+        
+        if (report) {
+          return res.json({ report });
+        } else {
+          console.warn('OpenAI API returned empty response or error:', data);
+        }
+      } catch (e) {
+        console.warn('OpenAI Integration Error:', e);
+      }
+    }
     
     if (openRouterKey) {
       try {

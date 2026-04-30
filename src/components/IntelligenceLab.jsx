@@ -52,6 +52,7 @@ const IntelligenceLab = ({ onClose }) => {
       setTimeout(() => addLog('Scraping SEC filings & Macro news...'), 4000);
 
       const geminiKey = localStorage.getItem('av_gemini_key') || '';
+      const openaiKey = localStorage.getItem('av_openai_key') || '';
       
       addLog('Signal transmitted. Awaiting institutional synthesis...');
 
@@ -65,7 +66,8 @@ const IntelligenceLab = ({ onClose }) => {
           query, 
           timeHorizon: horizon, 
           dataRequirement: requirement,
-          apiKey: geminiKey 
+          apiKey: geminiKey,
+          openaiKey: openaiKey
         })
       });
       
