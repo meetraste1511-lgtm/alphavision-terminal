@@ -32,10 +32,41 @@ export default async function handler(req, res) {
 
   try {
     const currentDate = new Date().toISOString().split('T')[0];
+    
+    // Inject Live Real-Time Market Data to prevent old price hallucinations
+    let liveContext = "";
+    const q = query.toLowerCase();
+    try {
+      if (q.includes("bitcoin") || q.includes("btc")) {
+        const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
+        const data = await res.json();
+        if (data.price) liveContext = `\nCRITICAL LIVE DATA OVERRIDE: The actual, real-time price of Bitcoin (BTC) right now is $${parseFloat(data.price).toLocaleString()}. You MUST use this exact price in your report and base all liquidation analysis around this current level, NOT historical data.`;
+      } else if (q.includes("ethereum") || q.includes("eth")) {
+        const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT");
+        const data = await res.json();
+        if (data.price) liveContext = `\nCRITICAL LIVE DATA OVERRIDE: The actual, real-time price of Ethereum (ETH) right now is $${parseFloat(data.price).toLocaleString()}. You MUST use this exact price in your report.`;
+      } else {
+        // Fallback for stocks using common tickers
+        let symbol = null;
+        if (q.includes("nvidia") || q.includes("nvda")) symbol = "NVDA";
+        else if (q.includes("apple") || q.includes("aapl")) symbol = "AAPL";
+        else if (q.includes("tesla") || q.includes("tsla")) symbol = "TSLA";
+        else if (q.includes("nifty")) symbol = "^NSEI";
+
+        if (symbol) {
+          const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
+          const data = await res.json();
+          const price = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+          if (price) liveContext = `\nCRITICAL LIVE DATA OVERRIDE: The actual, real-time price of ${symbol} right now is $${price.toLocaleString()}. You MUST use this exact price in your report.`;
+        }
+      }
+    } catch(e) { console.error('Live context fetch failed', e); }
+
     const systemPrompt = `
       You are the Lead Quantitative Strategist at AlphaVision Capital (AV-SQA). 
       Generate a Tier-1 Institutional Investment Dossier for: "${query}".
-      Today's date is: ${currentDate}. You must provide the most up-to-date and accurate market data available in your knowledge base.
+      Today's date is: ${currentDate}. You must provide the most up-to-date and accurate market data available.
+      ${liveContext}
 
       TIME HORIZON: ${timeHorizon}
       STRATEGIC FOCUS: ${dataRequirement}
