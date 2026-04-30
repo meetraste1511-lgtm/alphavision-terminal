@@ -3,6 +3,8 @@ import { supabase } from '../supabaseClient';
 import { Zap, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
 import './Auth.css';
 
+import Paywall from './Paywall';
+
 export default function Auth({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -11,6 +13,7 @@ export default function Auth({ onLogin }) {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -26,7 +29,8 @@ export default function Auth({ onLogin }) {
       } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage('Registration successful! Please check your email for a confirmation link.');
+        // Registration successful. Immediately show the Paywall so they can pay on the web terminal.
+        setShowPaywall(true);
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -40,6 +44,18 @@ export default function Auth({ onLogin }) {
       setLoading(false);
     }
   };
+
+  if (showPaywall) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ background: 'rgba(0, 200, 83, 0.1)', color: 'var(--success-color)', padding: '12px 24px', borderRadius: '8px', marginBottom: '24px', textAlign: 'center', border: '1px solid var(--success-color)' }}>
+          <strong>Registration Successful!</strong><br/>
+          Please complete your payment below to unlock your terminal access.
+        </div>
+        <Paywall userEmail={email} />
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
