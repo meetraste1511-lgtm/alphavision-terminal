@@ -51,33 +51,62 @@ export default async function handler(req, res) {
       4. LIQUIDITY & INSTITUTIONAL FLOW
       5. STRATEGIC VERDICT (Conviction level 1-10)
     `;
-    const fullPrompt = `${systemPrompt}\n\nQuery: ${query}\n\nDATA REQUIREMENT: ${dataRequirement}\nHORIZON: ${timeHorizon}`;
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + activeKey, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-        tools: [{ google_search: {} }]
-      })
-    });
-
-    const data = await response.json();
+    const openRouterKey = process.env.VITE_OPENROUTER_API_KEY;
     
-    // Check for API errors immediately
-    if (data.error) {
-      console.warn('Gemini API Error, falling back to offline synthesis:', data.error.message);
-      return res.json({ report: generateMockReport(query, timeHorizon, dataRequirement) });
+    if (openRouterKey) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Query: ${query}\nData Requirement: ${dataRequirement}\nHorizon: ${timeHorizon}` }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        const report = data.choices?.[0]?.message?.content;
+        
+        if (report) {
+          return res.json({ report });
+        } else {
+          console.warn('OpenRouter API returned empty response:', data);
+        }
+      } catch (e) {
+        console.warn('OpenRouter Integration Error:', e);
+      }
+    } else if (activeKey) {
+      // Fallback to Gemini if OpenRouter is unavailable but Gemini key is present
+      try {
+        const fullPrompt = `${systemPrompt}\n\nQuery: ${query}\n\nDATA REQUIREMENT: ${dataRequirement}\nHORIZON: ${timeHorizon}`;
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + activeKey, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+            tools: [{ google_search: {} }]
+          })
+        });
+
+        const data = await response.json();
+        let report = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (report) {
+          return res.json({ report });
+        }
+      } catch (e) {
+        console.warn('Gemini Integration Error:', e);
+      }
     }
-    
-    // Extract synthesized report or fallback to grounding data
-    let report = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!report) {
-      return res.json({ report: generateMockReport(query, timeHorizon, dataRequirement) });
-    }
 
-    return res.json({ report });
+    // Ultimate Fallback if everything fails
+    return res.json({ report: generateMockReport(query, timeHorizon, dataRequirement) });
   } catch (e) {
     console.warn('Deep Research Error, falling back to offline synthesis:', e);
     return res.json({ report: generateMockReport(query, timeHorizon, dataRequirement) });

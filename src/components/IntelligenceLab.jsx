@@ -53,17 +53,6 @@ const IntelligenceLab = ({ onClose }) => {
 
       const geminiKey = localStorage.getItem('av_gemini_key') || '';
       
-      // Clinical Signal Check
-      if (!geminiKey) {
-        // Provide a mock report for development/testing
-        const mockReport = `## MOCK INSTITUTIONAL DOSSIER\n\n**Query:** ${query}\n\n* This is a simulated research report generated because a valid Gemini API key was not provided.\n* It demonstrates the layout and functionality of the Research Lab.\n\n**Highlights:**\n- Market sentiment appears neutral.\n- No significant macro events detected.\n- Recommendation: Review once a valid key is configured.`;
-        setReport(mockReport);
-        setIsSearching(false);
-        setSearchStatus('');
-        addLog('Used mock report due to missing API key');
-        return;
-      }
-
       addLog('Signal transmitted. Awaiting institutional synthesis...');
 
       const response = await fetch('/api/deep-research', {
