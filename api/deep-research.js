@@ -55,6 +55,7 @@ export default async function handler(req, res) {
       5. STRATEGIC VERDICT (Conviction level 1-10)
     `;
     const openRouterKey = process.env.VITE_OPENROUTER_API_KEY;
+    const groqKey = process.env.VITE_GROQ_API_KEY;
     
     if (activeOpenAIKey) {
       // Official OpenAI Integration
@@ -84,6 +85,35 @@ export default async function handler(req, res) {
         }
       } catch (e) {
         console.warn('OpenAI Integration Error:', e);
+      }
+    }
+    
+    if (groqKey) {
+      // Groq Integration (100% Free, Extremely Fast Llama 3 70B)
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'llama3-70b-8192',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Query: ${query}\nData Requirement: ${dataRequirement}\nHorizon: ${timeHorizon}` }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        const report = data.choices?.[0]?.message?.content;
+        
+        if (report) {
+          return res.json({ report });
+        }
+      } catch (e) {
+        console.warn('Groq Integration Error:', e);
       }
     }
     
