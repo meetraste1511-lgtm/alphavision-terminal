@@ -45,18 +45,18 @@ function App() {
   const [tradeStyle, setTradeStyle] = useState('scalp');
   const [capital, setCapital] = useState(localStorage.getItem('av_capital') || '100000');
   const [manualPrice, setManualPrice] = useState('');
-  
+
   // Account stats persisted in localStorage
   const loadStats = () => {
     try { return JSON.parse(localStorage.getItem('av_stats')) || { wins: 0, losses: 0, pnl: 0, trades: [] }; }
     catch { return { wins: 0, losses: 0, pnl: 0, trades: [] }; }
   };
   const [accountStats, setAccountStats] = useState(loadStats);
-  
+
   const [image, setImage] = useState(null);
   const [imageBase64, setImageBase64] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const [apiKeys, setApiKeys] = useState({
     openai: localStorage.getItem('av_openai_key') || '',
     gemini: localStorage.getItem('av_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY || '',
@@ -64,7 +64,7 @@ function App() {
     openrouter: localStorage.getItem('av_openrouter_key') || import.meta.env.VITE_OPENROUTER_API_KEY || '',
     twelvedata: localStorage.getItem('av_twelvedata_key') || import.meta.env.VITE_TWELVEDATA_API_KEY || ''
   });
-  
+
   const [syncChartTheme, setSyncChartTheme] = useState(() => {
     const saved = localStorage.getItem('av_sync_chart');
     return saved === null ? true : JSON.parse(saved);
@@ -93,9 +93,9 @@ function App() {
 
   const checkAccess = async (user, retryCount = 0) => {
     if (!user) return;
-    
+
     console.log('Checking access for:', user.email);
-    
+
     // Master Bypass List (Case-Insensitive)
     const masters = [ADMIN_EMAIL?.toLowerCase(), 'kajalraste13@gmail.com'];
     if (masters.includes(user.email?.toLowerCase())) {
@@ -110,17 +110,17 @@ function App() {
         .select('subscription_expiry_date')
         .eq('id', user.id)
         .single();
-      
+
       if (error) {
         if (error.code === 'PGRST116') { // Profile doesn't exist
-           // Auto-create profile for new users
-           await supabase.from('profiles').insert({ id: user.id, email: user.email });
-           setHasAccess(false);
-           return;
+          // Auto-create profile for new users
+          await supabase.from('profiles').insert({ id: user.id, email: user.email });
+          setHasAccess(false);
+          return;
         }
         throw error;
       }
-      
+
       if (!data || !data.subscription_expiry_date) {
         // If they just paid, the record might not be updated yet. Retry once after 2s.
         if (retryCount < 1) {
@@ -130,10 +130,10 @@ function App() {
         setHasAccess(false);
         return;
       }
-      
+
       const expiry = new Date(data.subscription_expiry_date);
       const now = new Date();
-      
+
       // Allow 5 min grace period for server/client clock drift
       const isActive = expiry.getTime() + (5 * 60 * 1000) > now.getTime();
       setHasAccess(isActive);
@@ -165,7 +165,7 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
-  
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(() => {
     try { return JSON.parse(localStorage.getItem('av_last_results')); }
@@ -194,7 +194,7 @@ function App() {
     setLivePrice(null);
     setLivePriceSource('');
   }, [directAsset, exchange]);
-  
+
   const fileInputRef = useRef(null);
   const retryCount = useRef(0);
 
@@ -215,7 +215,7 @@ function App() {
     if (isCrypto) {
       const cleanSymbol = directAsset.toUpperCase().replace('USDT', '').toLowerCase() + 'usdt';
       const wsUrl = `wss://stream.binance.com:9443/ws/${cleanSymbol}@ticker`;
-      
+
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -244,8 +244,8 @@ function App() {
             return;
           }
         }
-      } catch (e) { 
-        if (!isSilent) console.error('Proxy Fetch Error:', e); 
+      } catch (e) {
+        if (!isSilent) console.error('Proxy Fetch Error:', e);
       } finally {
         if (!isSilent) setLivePriceFetching(false);
       }
@@ -259,8 +259,8 @@ function App() {
       fetchPrice(true);
     }, 1000);
 
-    return () => { 
-      cancelled = true; 
+    return () => {
+      cancelled = true;
       clearInterval(intervalId);
       if (wsRef.current) {
         wsRef.current.close();
@@ -288,11 +288,11 @@ function App() {
   const analyzeChart = async () => {
     if (inputMode === 'image' && !imageBase64) { setError('Upload a chart image first.'); return; }
     if (inputMode === 'direct' && !directAsset.trim()) { setError('Enter a valid ticker/asset name.'); return; }
-    
-    if (aiProvider !== 'pollinations' && !apiKeys[aiProvider]) { 
-      setShowSettings(true); 
-      setError(`Please enter your ${aiProvider.toUpperCase()} API key in settings.`); 
-      return; 
+
+    if (aiProvider !== 'pollinations' && !apiKeys[aiProvider]) {
+      setShowSettings(true);
+      setError(`Please enter your ${aiProvider.toUpperCase()} API key in settings.`);
+      return;
     }
 
     if (inputMode === 'direct' && aiProvider !== 'gemini' && !apiKeys.twelvedata) {
@@ -308,7 +308,7 @@ function App() {
     try {
       const fullSymbol = exchange ? `${exchange}:${directAsset}` : directAsset;
       const assetName = inputMode === 'direct' ? fullSymbol : 'the asset shown in this chart';
-      
+
       let marketDataText = '';
       let currentPrice = null;
       if (inputMode === 'direct') {
@@ -347,7 +347,7 @@ function App() {
             created_at: new Date().toISOString()
           };
         });
-        supabase.from('system_trades').insert(insertData).then(({error}) => {
+        supabase.from('system_trades').insert(insertData).then(({ error }) => {
           if (error || session.user.id === 'dev-user') {
             console.warn('DB insert failed or using Dev Bypass, falling back to local storage.');
             const existing = JSON.parse(localStorage.getItem('av_system_trades_fallback') || '[]');
@@ -374,7 +374,7 @@ function App() {
   };
 
   const getTvInterval = () => {
-    switch(activeTimeframe) {
+    switch (activeTimeframe) {
       case '1m': return '1';
       case '5m': return '5';
       case '15m': return '15';
@@ -422,7 +422,7 @@ function App() {
     if (!activeResult) return;
     const status = won ? 'validated' : 'invalidated';
     const profit = won ? potentialProfit : -potentialLoss;
-    
+
     // 🧠 Autonomous Learning Loop: Save to Supabase for AI Hardening
     try {
       await supabase.from('ai_training_logs').insert({
@@ -513,7 +513,7 @@ function App() {
                     <label>Ticker Symbol</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input type="text" style={{ flex: 1 }} value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
-                      <button 
+                      <button
                         className={`sync-btn ${chartSymbol === directAsset ? 'active' : ''}`}
                         title="Sync Chart to Ticker"
                         onClick={() => setChartSymbol(directAsset)}
@@ -543,8 +543,8 @@ function App() {
                 <input type="number" value={capital} onChange={(e) => setCapital(e.target.value)} />
               </div>
               {inputMode === 'direct' && (
-                <div className="live-price-badge" style={{ 
-                  padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '12px', 
+                <div className="live-price-badge" style={{
+                  padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '12px',
                   border: `1px solid ${livePrice ? 'var(--success-color)' : 'var(--surface-border)'}`,
                   opacity: livePriceFetching ? 0.6 : 1
                 }}>
@@ -633,7 +633,7 @@ function App() {
         <section className="workspace-panel">
           {inputMode === 'direct' ? (
             <div className="tv-widget-container">
-              <iframe 
+              <iframe
                 src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(chartSymbol === 'NIFTY' ? 'NSE:NIFTY' : chartSymbol)}&interval=60&theme=${syncChartTheme ? (theme === 'dark' ? 'dark' : 'light') : 'dark'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
                 width="100%" height="100%" frameBorder="0" allowFullScreen title="Live Chart"
               ></iframe>
@@ -652,7 +652,7 @@ function App() {
               )}
             </div>
           )}
-          
+
           {activeResult && (
             <div className="analysis-overlay">
               <button className="close-analysis-btn" onClick={() => setResults(null)}>
@@ -694,7 +694,7 @@ function App() {
             <div className="form-group">
               <label>Gemini API Key (Required for Research Lab)</label>
               <input type="password" value={apiKeys.gemini} onChange={(e) => {
-                const newKeys = {...apiKeys, gemini: e.target.value};
+                const newKeys = { ...apiKeys, gemini: e.target.value };
                 setApiKeys(newKeys);
                 localStorage.setItem('av_gemini_key', e.target.value);
               }} />
@@ -702,14 +702,14 @@ function App() {
             <div className="control-group">
               <label>OpenAI API Key (Official ChatGPT)</label>
               <input type="password" value={apiKeys.openai || ''} onChange={(e) => {
-                const newKeys = {...apiKeys, openai: e.target.value};
+                const newKeys = { ...apiKeys, openai: e.target.value };
                 setApiKeys(newKeys);
                 localStorage.setItem('av_openai_key', e.target.value);
               }} />
             </div>
             <div className="control-group">
               <label>TwelveData API Key (Live Data)</label>
-              <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({...apiKeys, twelvedata: e.target.value})} />
+              <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({ ...apiKeys, twelvedata: e.target.value })} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
               <button className="btn-primary" onClick={handleSaveSettings}>

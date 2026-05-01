@@ -43,11 +43,14 @@ export default async function handler(req, res) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + daysToAdd);
 
-    // Update user profile in Supabase
+    // Update user profile in Supabase (UPSERT to handle new users)
     const { data: profileData, error: profileErr } = await supabase
       .from('profiles')
-      .update({ subscription_expiry_date: expiryDate.toISOString() })
-      .eq('id', userId);
+      .upsert({ 
+        id: userId, 
+        email: userEmail,
+        subscription_expiry_date: expiryDate.toISOString() 
+      }, { onConflict: 'id' });
 
     if (profileErr) {
        console.error('Failed to update Supabase profile:', profileErr);

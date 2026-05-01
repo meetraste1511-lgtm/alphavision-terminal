@@ -73,9 +73,9 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
              });
              const verifyData = await verifyRes.json();
              if (verifyData.success) {
-                setStatus('Account Unlocked! Refreshing...');
-                alert("SUCCESS: Your account is now active.");
-                window.location.reload();
+                setStatus('Account Unlocked! Launching Terminal...');
+                localStorage.setItem('av_just_paid', Date.now().toString());
+                setTimeout(() => window.location.reload(), 2500);
              } else {
                 setStatus('Verification failed. Contact support.');
                 alert("Error: " + (verifyData.error || 'Verification failed'));
