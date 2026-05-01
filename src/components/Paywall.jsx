@@ -9,8 +9,8 @@ export default function Paywall({ userEmail }) {
   const SUPPORT_EMAIL = 'meetraste1511@gmail.com';
   
   const plans = {
-    monthly: { amount: 1200, label: '1 Month', desc: '₹1,200 / month' },
-    quarterly: { amount: 1199, label: '3 Months', desc: '₹399 / month (Save ₹2,401)' }
+    monthly: { amount: 1199, label: '1 Month', desc: '₹1,199 / month' },
+    quarterly: { amount: 3000, label: '3 Months', desc: '₹1,000 / month (Save ₹597)' }
   };
   
   const currentAmount = plans[plan].amount;
