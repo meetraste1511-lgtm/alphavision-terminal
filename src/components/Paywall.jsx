@@ -29,39 +29,49 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   }, []);
 
   const handlePayment = async () => {
-    window.alert('Payment system starting. If no other box appears, check for popup blockers.');
+    // Immediate feedback
+    window.alert('STEP 1: Starting Secure Connection...');
+    
     console.log('Starting payment process for amount:', currentAmount);
     setIsProcessing(true);
+    
     try {
       // 1. Create Order on Backend
       console.log('Creating order on backend...');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second timeout
+
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: currentAmount })
+        body: JSON.stringify({ amount: currentAmount }),
+        signal: controller.signal
+      }).catch(err => {
+        if (err.name === 'AbortError') throw new Error('Connection timed out. The server is taking too long to respond.');
+        throw err;
       });
       
+      clearTimeout(timeoutId);
+
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Order creation failed with status:', res.status, errorText);
-        throw new Error(`Server Error (${res.status}): ${errorText}`);
+        console.error('Order creation failed status:', res.status, errorText);
+        throw new Error(`Server Rejected Payment (${res.status}): ${errorText}`);
       }
 
       const order = await res.json();
       console.log('Order created successfully:', order);
       
       if (!order.id) {
-        throw new Error('Server returned a success response but no Order ID was found.');
+        throw new Error('Order generated but ID is missing. Please contact support.');
       }
+
+      window.alert('STEP 2: Order Generated! Opening Secure Popup...');
 
       // 2. Open Razorpay Checkout
       if (!window.Razorpay) {
-        console.log('Razorpay window object not found. Attempting to reload script...');
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        document.body.appendChild(script);
-        throw new Error('Razorpay secure script is still loading. Please wait 5 seconds and try again.');
+        throw new Error('Razorpay Secure Library is not loaded. Check your internet connection.');
       }
 
       console.log('Opening Razorpay checkout...');
@@ -71,9 +81,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
         if (import.meta && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) {
           rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
         }
-      } catch (e) {
-        console.warn('Could not read import.meta.env, using fallback key.');
-      }
+      } catch (e) {}
 
       const options = {
         key: rzpKey,
@@ -84,6 +92,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
         order_id: order.id,
         handler: async function (response) {
           console.log('Payment success response received:', response);
+          window.alert('STEP 3: Payment Success! Verifying with Database...');
           // 3. Verify Payment
           try {
              const verifyRes = await fetch('/api/verify-payment', {
@@ -101,14 +110,14 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
              const verifyData = await verifyRes.json();
              console.log('Verification response:', verifyData);
              if (verifyData.success) {
-                alert("SUCCESS: Payment verified! Your account is now unlocked. Refreshing...");
+                alert("FINAL SUCCESS: Your account is now ACTIVE! Refreshing...");
                 window.location.reload();
              } else {
-                alert("VERIFICATION FAILED: " + (verifyData.error || 'Unknown error'));
+                alert("VERIFICATION ERROR: " + (verifyData.error || 'Check with Admin'));
              }
           } catch(e) {
              console.error('Verification error:', e);
-             alert("SYSTEM ERROR: Could not verify payment signature.");
+             alert("NETWORK ERROR: Could not reach verification server.");
           }
         },
         prefill: {
@@ -116,6 +125,12 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
         },
         theme: {
           color: "#2563eb"
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+            console.log('Checkout closed by user');
+          }
         }
       };
 
@@ -127,7 +142,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       rzp.open();
     } catch (error) {
       console.error('Detailed Payment Error:', error);
-      alert("CRITICAL ERROR: " + error.message);
+      alert("PAYMENT STOPPED: " + error.message);
     } finally {
       setIsProcessing(false);
     }
