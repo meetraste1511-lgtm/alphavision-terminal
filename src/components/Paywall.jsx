@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Lock, ShieldCheck, CheckCircle, RefreshCcw } from 'lucide-react';
 import './Auth.css';
 
 export default function Paywall({ userEmail, userId, isNewRegistration }) {
   const [plan, setPlan] = useState('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  const SUPPORT_EMAIL = 'meetraste1511@gmail.com';
+  const [status, setStatus] = useState('');
   
   const plans = {
     monthly: { amount: 1199, label: '1 Month', desc: '₹1,199 / month' },
@@ -15,32 +14,14 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   
   const currentAmount = plans[plan].amount;
 
-  useEffect(() => {
-    console.log('Loading Razorpay script...');
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => console.log('Razorpay script loaded successfully.');
-    script.onerror = () => console.error('Failed to load Razorpay script.');
-    document.body.appendChild(script);
-    return () => {
-      try { document.body.removeChild(script); } catch (e) {}
-    };
-  }, []);
-
   const handlePayment = async () => {
-    // Immediate feedback
-    window.alert('STEP 1: Starting Secure Connection...');
-    
-    console.log('Starting payment process for amount:', currentAmount);
+    setStatus('Initializing secure connection...');
     setIsProcessing(true);
     
     try {
-      // 1. Create Order on Backend
-      console.log('Creating order on backend...');
-      
+      console.log('API Request: Creating order...');
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch('/api/create-order', {
         method: 'POST',
@@ -48,7 +29,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
         body: JSON.stringify({ amount: currentAmount }),
         signal: controller.signal
       }).catch(err => {
-        if (err.name === 'AbortError') throw new Error('Connection timed out. The server is taking too long to respond.');
+        if (err.name === 'AbortError') throw new Error('The secure server took too long to respond. Please try again.');
         throw err;
       });
       
@@ -56,44 +37,27 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Order creation failed status:', res.status, errorText);
-        throw new Error(`Server Rejected Payment (${res.status}): ${errorText}`);
+        throw new Error(`Server Error (${res.status}): ${errorText}`);
       }
 
       const order = await res.json();
-      console.log('Order created successfully:', order);
-      
-      if (!order.id) {
-        throw new Error('Order generated but ID is missing. Please contact support.');
-      }
+      if (!order.id) throw new Error('Server did not return a valid Order ID.');
 
-      window.alert('STEP 2: Order Generated! Opening Secure Popup...');
+      setStatus('Order created! Opening secure popup...');
 
-      // 2. Open Razorpay Checkout
       if (!window.Razorpay) {
-        throw new Error('Razorpay Secure Library is not loaded. Check your internet connection.');
+        throw new Error('Payment gateway library failed to load. Please refresh the page.');
       }
-
-      console.log('Opening Razorpay checkout...');
-      
-      let rzpKey = 'rzp_live_Sk9c7D3csrStLq';
-      try {
-        if (import.meta && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) {
-          rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-        }
-      } catch (e) {}
 
       const options = {
-        key: rzpKey,
+        key: 'rzp_live_Sk9c7D3csrStLq', 
         amount: order.amount,
         currency: order.currency,
         name: "AlphaVision Terminal",
         description: "Institutional SaaS Subscription",
         order_id: order.id,
         handler: async function (response) {
-          console.log('Payment success response received:', response);
-          window.alert('STEP 3: Payment Success! Verifying with Database...');
-          // 3. Verify Payment
+          setStatus('Payment success! Verifying...');
           try {
              const verifyRes = await fetch('/api/verify-payment', {
                 method: 'POST',
@@ -108,41 +72,34 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
                 })
              });
              const verifyData = await verifyRes.json();
-             console.log('Verification response:', verifyData);
              if (verifyData.success) {
-                alert("FINAL SUCCESS: Your account is now ACTIVE! Refreshing...");
+                setStatus('Account Unlocked! Refreshing...');
+                alert("SUCCESS: Your account is now active.");
                 window.location.reload();
              } else {
-                alert("VERIFICATION ERROR: " + (verifyData.error || 'Check with Admin'));
+                setStatus('Verification failed. Contact support.');
+                alert("Error: " + (verifyData.error || 'Verification failed'));
              }
           } catch(e) {
-             console.error('Verification error:', e);
-             alert("NETWORK ERROR: Could not reach verification server.");
+             setStatus('Network error during verification.');
           }
         },
-        prefill: {
-          email: userEmail
-        },
-        theme: {
-          color: "#2563eb"
-        },
+        prefill: { email: userEmail },
+        theme: { color: "#2563eb" },
         modal: {
-          ondismiss: function() {
+          ondismiss: () => {
             setIsProcessing(false);
-            console.log('Checkout closed by user');
+            setStatus('');
           }
         }
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response) {
-        console.error('Payment failed:', response.error);
-        alert('PAYMENT FAILED: ' + response.error.description);
-      });
       rzp.open();
     } catch (error) {
-      console.error('Detailed Payment Error:', error);
-      alert("PAYMENT STOPPED: " + error.message);
+      console.error('Payment Error:', error);
+      setStatus('Error: ' + error.message);
+      alert('Payment Error: ' + error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -164,7 +121,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
             <Lock size={32} color="#2563eb" />
           </div>
           <h2>Subscription Required</h2>
-          <p className="auth-subtitle" style={{ marginTop: '8px' }}>
+          <p className="auth-subtitle">
             Choose an institutional plan to unlock AlphaVision Terminal.
           </p>
         </div>
@@ -182,13 +139,12 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
                 cursor: 'pointer',
                 background: plan === key ? '#eff6ff' : '#ffffff',
                 transition: 'all 0.2s ease',
-                position: 'relative',
-                boxShadow: plan === key ? '0 4px 12px rgba(37, 99, 235, 0.1)' : 'none'
+                position: 'relative'
               }}
             >
-              {key === 'quarterly' && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', fontSize: '0.7rem', fontWeight: 'bold', padding: '2px 10px', borderRadius: '12px', whiteSpace: 'nowrap' }}>BEST VALUE</div>}
-              <div style={{ fontWeight: '800', fontSize: '1.15rem', color: plan === key ? '#1e40af' : '#1e293b' }}>{data.label}</div>
-              <div style={{ fontSize: '0.85rem', color: plan === key ? '#3b82f6' : '#64748b', marginTop: '6px', fontWeight: '500' }}>{data.desc}</div>
+              {key === 'quarterly' && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', fontSize: '0.7rem', fontWeight: 'bold', padding: '2px 10px', borderRadius: '12px' }}>BEST VALUE</div>}
+              <div style={{ fontWeight: '800', fontSize: '1.15rem' }}>{data.label}</div>
+              <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{data.desc}</div>
             </div>
           ))}
         </div>
@@ -200,7 +156,6 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
           
           <button 
             onClick={handlePayment} 
-            disabled={isProcessing}
             style={{ 
               width: '100%', 
               background: '#2563eb', 
@@ -210,17 +165,22 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
               borderRadius: '12px', 
               fontSize: '1.1rem', 
               fontWeight: '700', 
-              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)',
-              transition: 'all 0.2s ease'
+              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)'
             }}
           >
-            {isProcessing ? <><RefreshCcw className="spin" size={20} /> Processing...</> : 'PAY NOW (V4 READY)'}
+            {isProcessing ? <RefreshCcw className="spin" size={20} /> : 'PAY NOW (FINAL VERSION)'}
           </button>
+
+          {status && (
+            <div style={{ marginTop: '16px', fontSize: '0.9rem', color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <RefreshCcw size={14} className="spin" /> {status}
+            </div>
+          )}
         </div>
 
         <div style={{ textAlign: 'left', background: '#f8fafc', padding: '24px', borderRadius: '16px', borderLeft: '4px solid #2563eb' }}>
@@ -228,7 +188,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
             <ShieldCheck size={18} color="#2563eb"/> Automated Unlock
           </h4>
           <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.6', margin: 0 }}>
-            Your payment is securely processed by Razorpay. Once successful, your institutional terminal access will be unlocked instantly and automatically.
+            Your payment is securely processed by Razorpay. Once successful, your access will be unlocked instantly.
           </p>
         </div>
       </div>
