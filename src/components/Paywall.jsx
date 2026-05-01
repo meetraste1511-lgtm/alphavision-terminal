@@ -193,7 +193,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
               transition: 'all 0.2s ease'
             }}
           >
-            {isProcessing ? <><Loader className="spin" size={20} /> Processing...</> : 'Pay securely with Razorpay'}
+            {isProcessing ? <><Loader className="spin" size={20} /> Processing...</> : 'PAY NOW (V3 DEPLOYED)'}
           </button>
         </div>
 
