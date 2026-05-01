@@ -27,6 +27,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   }, []);
 
   const handlePayment = async () => {
+    alert('Payment initiated. Please wait for the secure popup...');
     console.log('Starting payment process for amount:', currentAmount);
     setIsProcessing(true);
     try {
@@ -39,19 +40,27 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       });
       
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Order creation failed:', errorData);
-        throw new Error(errorData.details || errorData.error || 'Failed to create order');
+        const errorText = await res.text();
+        console.error('Order creation failed with status:', res.status, errorText);
+        throw new Error(`Server Error (${res.status}): ${errorText}`);
       }
 
       const order = await res.json();
       console.log('Order created successfully:', order);
       
-      if (!order.id) throw new Error('Order ID is missing from response');
+      if (!order.id) {
+        throw new Error('Server returned a success response but no Order ID was found.');
+      }
 
       // 2. Open Razorpay Checkout
       if (!window.Razorpay) {
-        throw new Error('Razorpay SDK not loaded yet. Please wait a moment and try again.');
+        console.log('Razorpay window object not found. Attempting to reload script...');
+        // Fallback: try to re-inject script if it failed
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        throw new Error('Razorpay secure script is still loading. Please try again in 3 seconds.');
       }
 
       console.log('Opening Razorpay checkout...');
@@ -81,14 +90,14 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
              const verifyData = await verifyRes.json();
              console.log('Verification response:', verifyData);
              if (verifyData.success) {
-                alert("Payment verified! Your account is now unlocked. Please refresh.");
+                alert("SUCCESS: Payment verified! Your account is now unlocked. Refreshing...");
                 window.location.reload();
              } else {
-                alert("Payment verification failed: " + (verifyData.error || 'Unknown error'));
+                alert("VERIFICATION FAILED: " + (verifyData.error || 'Unknown error'));
              }
           } catch(e) {
              console.error('Verification error:', e);
-             alert("Error verifying payment.");
+             alert("SYSTEM ERROR: Could not verify payment signature.");
           }
         },
         prefill: {
@@ -102,12 +111,12 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', function (response) {
         console.error('Payment failed:', response.error);
-        alert('Payment Failed: ' + response.error.description);
+        alert('PAYMENT FAILED: ' + response.error.description);
       });
       rzp.open();
     } catch (error) {
-      console.error('Payment process error:', error);
-      alert("Could not initiate payment: " + error.message);
+      console.error('Detailed Payment Error:', error);
+      alert("CRITICAL ERROR: " + error.message);
     } finally {
       setIsProcessing(false);
     }
