@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle2, TrendingUp, Brain, Plus, Calendar, Target, ShieldCheck, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import './Journal.css';
@@ -13,6 +13,7 @@ const Journal = ({ session, onClose }) => {
     mistake: 'None', setup: 'Order Block'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState(null);
 
   const MISTAKES = ['None', 'FOMO Entry', 'Revenge Trade', 'Late Exit', 'Moved SL', 'Over-Leveraged', 'News Spike'];
   const SETUPS = ['Order Block', 'Fair Value Gaps', 'Liquidity Sweep', 'Trendline Break', 'Mean Reversion'];
@@ -99,6 +100,27 @@ const Journal = ({ session, onClose }) => {
   };
 
   const { totalPnl, winRate, expectancy, profitFactor } = calculateStats();
+
+  const groupedTrades = useMemo(() => {
+    if (!systemTrades || systemTrades.length === 0) return [];
+    const groups = [];
+    systemTrades.forEach(trade => {
+      const tradeTime = new Date(trade.created_at).getTime();
+      let foundGroup = groups.find(g => g.symbol === trade.symbol && Math.abs(g.time - tradeTime) < 15000);
+      if (foundGroup) {
+        foundGroup.timeframes.push(trade);
+      } else {
+        groups.push({
+          id: trade.id || trade.created_at + trade.symbol,
+          symbol: trade.symbol,
+          time: tradeTime,
+          created_at: trade.created_at,
+          timeframes: [trade]
+        });
+      }
+    });
+    return groups;
+  }, [systemTrades]);
 
   return (
     <div className="journal-overlay">
@@ -277,23 +299,47 @@ const Journal = ({ session, onClose }) => {
                   <span>CONFIDENCE</span>
                 </div>
                 <div className="ledger-rows">
-                  {systemTrades.length > 0 ? (
-                    systemTrades.map(trade => (
-                      <div key={trade.id} className="ledger-row" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr', cursor: 'default' }}>
-                        <span className="ledger-date">{new Date(trade.created_at).toLocaleDateString()}</span>
-                        <span className="ledger-asset" style={{ fontWeight: 'bold' }}>{trade.symbol}</span>
-                        <span className="ledger-setup">{trade.timeframe}</span>
-                        <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{trade.entry}</span>
-                        <span style={{ fontFamily: 'monospace', color: 'var(--success-color)' }}>{trade.take_profit}</span>
-                        <span style={{ fontFamily: 'monospace', color: 'var(--danger-color)' }}>{trade.stop_loss}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ flex: 1, height: '4px', background: 'var(--surface-border)', borderRadius: '2px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${trade.confidence}%`, background: trade.confidence >= 75 ? 'var(--success-color)' : trade.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
+                  {groupedTrades.length > 0 ? (
+                    groupedTrades.map(group => {
+                      const isExpanded = expandedGroup === group.id;
+                      // Define timeframe order to sort them logically
+                      const tfOrder = { '1m': 1, '5m': 2, '15m': 3, '1H': 4, '4H': 5, 'Daily': 6 };
+                      const sortedTfs = [...group.timeframes].sort((a, b) => (tfOrder[a.timeframe] || 99) - (tfOrder[b.timeframe] || 99));
+                      
+                      return (
+                        <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+                          <div 
+                            className="ledger-row" 
+                            style={{ gridTemplateColumns: '1fr 1fr 4fr', cursor: 'pointer', background: 'var(--surface-color)', border: '1px solid var(--surface-border)', borderRadius: '8px' }}
+                            onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
+                          >
+                            <span className="ledger-date">{new Date(group.created_at).toLocaleDateString()} {new Date(group.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span className="ledger-asset" style={{ fontWeight: 'bold' }}>{group.symbol}</span>
+                            <span style={{ color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Multi-Timeframe Analysis ({group.timeframes.length} TFs)</span>
+                              <span>{isExpanded ? '▲' : '▼'}</span>
+                            </span>
                           </div>
-                          <span style={{ fontSize: '0.7rem' }}>{trade.confidence}%</span>
-                        </span>
-                      </div>
-                    ))
+                          
+                          {isExpanded && sortedTfs.map(trade => (
+                            <div key={trade.id || trade.timeframe} className="ledger-row" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr', cursor: 'default', marginLeft: '20px', padding: '12px', background: 'transparent', border: 'none', borderLeft: '2px solid var(--accent-color)' }}>
+                              <span className="ledger-date"></span>
+                              <span className="ledger-asset"></span>
+                              <span className="ledger-setup" style={{ fontWeight: 'bold' }}>{trade.timeframe}</span>
+                              <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{trade.entry}</span>
+                              <span style={{ fontFamily: 'monospace', color: 'var(--success-color)' }}>{trade.take_profit}</span>
+                              <span style={{ fontFamily: 'monospace', color: 'var(--danger-color)' }}>{trade.stop_loss}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ flex: 1, height: '4px', background: 'var(--surface-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${trade.confidence}%`, background: trade.confidence >= 75 ? 'var(--success-color)' : trade.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
+                                </div>
+                                <span style={{ fontSize: '0.7rem' }}>{trade.confidence}%</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="empty-ledger">No AI setups generated yet. Analyze a chart to get started.</div>
                   )}
