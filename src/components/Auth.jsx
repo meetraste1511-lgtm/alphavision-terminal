@@ -60,15 +60,7 @@ export default function Auth({ onLogin }) {
   };
 
   if (showPaywall) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ background: 'rgba(0, 200, 83, 0.1)', color: 'var(--success-color)', padding: '12px 24px', borderRadius: '8px', marginBottom: '24px', textAlign: 'center', border: '1px solid var(--success-color)' }}>
-          <strong>Registration Successful!</strong><br/>
-          Please complete your payment below to unlock your terminal access.
-        </div>
-        <Paywall userEmail={email} />
-      </div>
-    );
+    return <Paywall userEmail={email} isNewRegistration={true} />;
   }
 
   return (
