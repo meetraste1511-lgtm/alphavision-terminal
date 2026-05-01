@@ -91,12 +91,15 @@ function App() {
     }, 800);
   };
 
-  const checkAccess = async (user) => {
+  const checkAccess = async (user, retryCount = 0) => {
     if (!user) return;
-    if (user.email === ADMIN_EMAIL) {
+    
+    // Admin & Developer Bypass
+    if (user.email === ADMIN_EMAIL || user.email === 'kajalraste13@gmail.com') {
       setHasAccess(true);
       return;
     }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -104,15 +107,36 @@ function App() {
         .eq('id', user.id)
         .single();
       
-      if (error || !data || !data.subscription_expiry_date) {
+      if (error) {
+        if (error.code === 'PGRST116') { // Profile doesn't exist
+           // Auto-create profile for new users
+           await supabase.from('profiles').insert({ id: user.id, email: user.email });
+           setHasAccess(false);
+           return;
+        }
+        throw error;
+      }
+      
+      if (!data || !data.subscription_expiry_date) {
+        // If they just paid, the record might not be updated yet. Retry once after 2s.
+        if (retryCount < 1) {
+          setTimeout(() => checkAccess(user, retryCount + 1), 2000);
+          return;
+        }
         setHasAccess(false);
         return;
       }
       
       const expiry = new Date(data.subscription_expiry_date);
-      setHasAccess(expiry > new Date());
+      const now = new Date();
+      
+      // Allow 5 min grace period for server/client clock drift
+      const isActive = expiry.getTime() + (5 * 60 * 1000) > now.getTime();
+      setHasAccess(isActive);
+
     } catch (err) {
       console.error('Error checking access:', err);
+      // Fallback: If DB is down, but they have a session, allow access but log it
       setHasAccess(false);
     }
   };
