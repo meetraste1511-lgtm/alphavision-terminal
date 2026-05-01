@@ -43,7 +43,6 @@ export default function Auth({ onLogin }) {
       } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // Registration successful. Immediately show the Paywall so they can pay on the web terminal.
         setShowPaywall(true);
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password });
@@ -114,7 +113,7 @@ export default function Auth({ onLogin }) {
             <div className="auth-feature-item">
               <CheckCircle size={20} color="#10b981" /> Institutional Research AI
             </div>
-            <div className="auth-feature-item) ">
+            <div className="auth-feature-item">
               <CheckCircle size={20} color="#10b981" /> Global News Synthesis
             </div>
             <div className="auth-feature-item">
@@ -181,7 +180,7 @@ export default function Auth({ onLogin }) {
             )}
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
-              {loading ? 'Authenticating...' : isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Launch Terminal'}
+              {loading ? 'Authenticating...' : isForgotPassword ? 'Send Link' : isSignUp ? 'Create Account' : 'Launch Terminal'}
             </button>
 
             {!isForgotPassword && (
@@ -203,7 +202,7 @@ export default function Auth({ onLogin }) {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  Sign in with Institutional Google
+                  Institutional Sign In
                 </button>
               </>
             )}
@@ -234,7 +233,6 @@ export default function Auth({ onLogin }) {
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.4', padding: '12px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
               <strong>Regulatory Disclaimer:</strong> AlphaVision is an AI-powered research and educational terminal. 
               We provide data synthesis and market intelligence for informational purposes only. 
-              We do not provide financial advice or brokerage services. Use at your own discretion.
             </div>
           </div>
         </div>
