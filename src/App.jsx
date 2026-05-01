@@ -431,7 +431,7 @@ function App() {
 
 
   if (!session) return <Auth onLogin={setSession} />;
-  if (!hasAccess && session?.user?.email !== ADMIN_EMAIL) return <Paywall userEmail={session.user.email} />;
+  if (!hasAccess && session?.user?.email !== ADMIN_EMAIL) return <Paywall userEmail={session.user.email} userId={session.user.id} />;
 
   return (
     <div className="app-container" data-theme={theme}>

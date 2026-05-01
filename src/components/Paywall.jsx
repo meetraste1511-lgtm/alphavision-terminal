@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Lock, Mail, ShieldCheck, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lock, ShieldCheck, CheckCircle, Loader } from 'lucide-react';
 import './Auth.css';
 
-export default function Paywall({ userEmail, isNewRegistration }) {
+export default function Paywall({ userEmail, userId, isNewRegistration }) {
   const [plan, setPlan] = useState('monthly');
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  const UPI_ID = 'meetraste1511@okaxis'; 
   const SUPPORT_EMAIL = 'meetraste1511@gmail.com';
   
   const plans = {
@@ -14,9 +14,79 @@ export default function Paywall({ userEmail, isNewRegistration }) {
   };
   
   const currentAmount = plans[plan].amount;
-  
-  const upiLink = `upi://pay?pa=${UPI_ID}&pn=AlphaVision&am=${currentAmount}&cu=INR`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => document.body.removeChild(script);
+  }, []);
+
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    try {
+      // 1. Create Order on Backend
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: currentAmount })
+      });
+      const order = await res.json();
+      
+      if (!order.id) throw new Error('Failed to generate order ID');
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Sk9c7D3csrStLq',
+        amount: order.amount,
+        currency: order.currency,
+        name: "AlphaVision Terminal",
+        description: "Institutional SaaS Subscription",
+        order_id: order.id,
+        handler: async function (response) {
+          // 3. Verify Payment
+          try {
+             const verifyRes = await fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                   razorpay_order_id: response.razorpay_order_id,
+                   razorpay_payment_id: response.razorpay_payment_id,
+                   razorpay_signature: response.razorpay_signature,
+                   userId: userId,
+                   userEmail: userEmail,
+                   planAmount: currentAmount
+                })
+             });
+             const verifyData = await verifyRes.json();
+             if (verifyData.success) {
+                alert("Payment verified! Your account is now unlocked. Please refresh.");
+                window.location.reload();
+             } else {
+                alert("Payment verification failed.");
+             }
+          } catch(e) {
+             alert("Error verifying payment.");
+          }
+        },
+        prefill: {
+          email: userEmail
+        },
+        theme: {
+          color: "#2563eb"
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error(error);
+      alert("Could not initiate payment. " + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="auth-container">
@@ -68,31 +138,38 @@ export default function Paywall({ userEmail, isNewRegistration }) {
             ₹{currentAmount.toLocaleString()}
           </h3>
           
-          <div style={{ background: 'white', padding: '16px', borderRadius: '16px', display: 'inline-block', boxShadow: '0 8px 30px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', marginBottom: '24px' }}>
-            <img 
-              src={qrCodeUrl} 
-              alt="UPI QR Code" 
-              style={{ width: '180px', height: '180px', display: 'block' }}
-            />
-          </div>
-          
-          <div>
-            <span style={{ fontFamily: 'monospace', fontSize: '1.05rem', background: '#ffffff', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 16px', borderRadius: '8px', display: 'inline-block', fontWeight: '600' }}>
-              {UPI_ID}
-            </span>
-          </div>
+          <button 
+            onClick={handlePayment} 
+            disabled={isProcessing}
+            style={{ 
+              width: '100%', 
+              background: '#2563eb', 
+              color: 'white', 
+              border: 'none', 
+              padding: '16px', 
+              borderRadius: '12px', 
+              fontSize: '1.1rem', 
+              fontWeight: '700', 
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isProcessing ? <><Loader className="spin" size={20} /> Processing...</> : 'Pay securely with Razorpay'}
+          </button>
         </div>
 
         <div style={{ textAlign: 'left', background: '#f8fafc', padding: '24px', borderRadius: '16px', borderLeft: '4px solid #2563eb' }}>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#1e293b', fontSize: '0.95rem' }}>
-            <ShieldCheck size={18} color="#2563eb"/> Secure Activation
+            <ShieldCheck size={18} color="#2563eb"/> Automated Unlock
           </h4>
-          <ol style={{ paddingLeft: '24px', fontSize: '0.85rem', color: '#475569', lineHeight: '1.6', margin: 0 }}>
-            <li style={{ marginBottom: '8px' }}>Scan the QR code to securely pay <strong>₹{currentAmount.toLocaleString()}</strong>.</li>
-            <li style={{ marginBottom: '8px' }}>Take a screenshot of the successful payment.</li>
-            <li style={{ marginBottom: '8px' }}>Email the screenshot to <strong>{SUPPORT_EMAIL}</strong> from your registered email.</li>
-            <li>Your institutional terminal access will be unlocked within 2 hours.</li>
-          </ol>
+          <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.6', margin: 0 }}>
+            Your payment is securely processed by Razorpay. Once successful, your institutional terminal access will be unlocked instantly and automatically.
+          </p>
         </div>
       </div>
     </div>
