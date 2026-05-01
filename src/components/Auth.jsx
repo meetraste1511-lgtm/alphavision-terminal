@@ -148,7 +148,7 @@ export default function Auth({ onLogin }) {
                   className="text-btn"
                   onClick={() => { setIsSignUp(!isSignUp); setIsForgotPassword(false); setError(null); setMessage(null); }}
                 >
-                  {isSignUp ? 'Sign In' : 'Sign Up (₹10/mo TEST)'}
+                  {isSignUp ? 'Sign In' : 'Sign Up (₹1200/mo)'}
                 </button>
               </>
             )}
