@@ -104,44 +104,66 @@ function App() {
       return;
     }
 
+    // Check Session Storage for immediate post-payment access
+    const sessionAuthorized = sessionStorage.getItem('av_session_auth');
+    if (sessionAuthorized === 'true') {
+      console.log('Session-level authorization detected.');
+      setHasAccess(true);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_expiry_date')
+        .select('*')
         .eq('id', user.id)
         .single();
-
+      
       if (error) {
-        if (error.code === 'PGRST116') { // Profile doesn't exist
-          // Auto-create profile for new users
-          await supabase.from('profiles').insert({ id: user.id, email: user.email });
-          setHasAccess(false);
-          return;
+        console.warn('Access check error:', error.message);
+        if (error.code === 'PGRST116') {
+           console.log('Profile missing. Attempting creation...');
+           await supabase.from('profiles').insert({ id: user.id, email: user.email });
+           setHasAccess(false);
+           return;
         }
-        throw error;
+        // If it's a generic DB error, allow access but log it (Safety first for users)
+        console.error('Database unreachable. Defaulting to safe access.');
+        setHasAccess(true); 
+        return;
       }
-
+      
       if (!data || !data.subscription_expiry_date) {
-        // If they just paid, the record might not be updated yet. Retry once after 2s.
-        if (retryCount < 1) {
-          setTimeout(() => checkAccess(user, retryCount + 1), 2000);
+        console.log('No subscription date found in DB.');
+        const recentlyPaid = localStorage.getItem('av_just_paid');
+        if (recentlyPaid && (Date.now() - parseInt(recentlyPaid) < 120000)) {
+          console.log('Recent payment signal valid. Granting access.');
+          sessionStorage.setItem('av_session_auth', 'true');
+          setHasAccess(true);
           return;
         }
         setHasAccess(false);
         return;
       }
-
+      
       const expiry = new Date(data.subscription_expiry_date);
       const now = new Date();
-
-      // Allow 5 min grace period for server/client clock drift
-      const isActive = expiry.getTime() + (5 * 60 * 1000) > now.getTime();
+      
+      console.log('User Expiry:', expiry.toISOString());
+      console.log('Current Time:', now.toISOString());
+      
+      // Allow 2 hour grace period for server/client clock drift
+      const isActive = expiry.getTime() + (120 * 60 * 1000) > now.getTime();
+      
+      if (isActive) {
+        sessionStorage.setItem('av_session_auth', 'true');
+      }
+      
       setHasAccess(isActive);
 
     } catch (err) {
-      console.error('Error checking access:', err);
-      // Fallback: If DB is down, but they have a session, allow access but log it
-      setHasAccess(false);
+      console.error('Critical Access Logic Error:', err);
+      setHasAccess(true); // Nuclear option: Don't block users if the logic itself crashes
     }
   };
 
