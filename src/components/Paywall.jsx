@@ -16,27 +16,45 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   const currentAmount = plans[plan].amount;
 
   useEffect(() => {
+    console.log('Loading Razorpay script...');
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
+    script.onload = () => console.log('Razorpay script loaded successfully.');
+    script.onerror = () => console.error('Failed to load Razorpay script.');
     document.body.appendChild(script);
     return () => document.body.removeChild(script);
   }, []);
 
   const handlePayment = async () => {
+    console.log('Starting payment process for amount:', currentAmount);
     setIsProcessing(true);
     try {
       // 1. Create Order on Backend
+      console.log('Creating order on backend...');
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: currentAmount })
       });
-      const order = await res.json();
       
-      if (!order.id) throw new Error('Failed to generate order ID');
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Order creation failed:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Failed to create order');
+      }
+
+      const order = await res.json();
+      console.log('Order created successfully:', order);
+      
+      if (!order.id) throw new Error('Order ID is missing from response');
 
       // 2. Open Razorpay Checkout
+      if (!window.Razorpay) {
+        throw new Error('Razorpay SDK not loaded yet. Please wait a moment and try again.');
+      }
+
+      console.log('Opening Razorpay checkout...');
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Sk9c7D3csrStLq',
         amount: order.amount,
@@ -45,6 +63,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
         description: "Institutional SaaS Subscription",
         order_id: order.id,
         handler: async function (response) {
+          console.log('Payment success response received:', response);
           // 3. Verify Payment
           try {
              const verifyRes = await fetch('/api/verify-payment', {
@@ -60,13 +79,15 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
                 })
              });
              const verifyData = await verifyRes.json();
+             console.log('Verification response:', verifyData);
              if (verifyData.success) {
                 alert("Payment verified! Your account is now unlocked. Please refresh.");
                 window.location.reload();
              } else {
-                alert("Payment verification failed.");
+                alert("Payment verification failed: " + (verifyData.error || 'Unknown error'));
              }
           } catch(e) {
+             console.error('Verification error:', e);
              alert("Error verifying payment.");
           }
         },
@@ -79,10 +100,14 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       };
 
       const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert('Payment Failed: ' + response.error.description);
+      });
       rzp.open();
     } catch (error) {
-      console.error(error);
-      alert("Could not initiate payment. " + error.message);
+      console.error('Payment process error:', error);
+      alert("Could not initiate payment: " + error.message);
     } finally {
       setIsProcessing(false);
     }
