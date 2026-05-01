@@ -37,12 +37,18 @@ const Journal = ({ session, onClose }) => {
       }
 
       // Fetch AI System Trades
-      const { data: sysData } = await supabase
+      const { data: sysData, error: sysErr } = await supabase
         .from('system_trades')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
-      if (sysData) setSystemTrades(sysData);
+        
+      if (sysErr || session.user.id === 'dev-user') {
+        const localSys = JSON.parse(localStorage.getItem('av_system_trades_fallback') || '[]');
+        setSystemTrades(localSys);
+      } else if (sysData) {
+        setSystemTrades(sysData);
+      }
     };
     fetchLogs();
   }, [session?.user?.id]);

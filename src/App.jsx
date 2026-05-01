@@ -315,11 +315,16 @@ function App() {
             take_profit: String(tfData.takeProfit || ''),
             stop_loss: String(tfData.stopLoss || ''),
             analysis: String(tfData.analysis || ''),
-            confidence: parseInt(tfData.confidence) || 0
+            confidence: parseInt(tfData.confidence) || 0,
+            created_at: new Date().toISOString()
           };
         });
         supabase.from('system_trades').insert(insertData).then(({error}) => {
-          if (error) console.error('Error saving system trades to DB:', error);
+          if (error || session.user.id === 'dev-user') {
+            console.warn('DB insert failed or using Dev Bypass, falling back to local storage.');
+            const existing = JSON.parse(localStorage.getItem('av_system_trades_fallback') || '[]');
+            localStorage.setItem('av_system_trades_fallback', JSON.stringify([...insertData, ...existing]));
+          }
         });
       }
     } catch (err) {
