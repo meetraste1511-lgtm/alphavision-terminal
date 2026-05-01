@@ -6,6 +6,7 @@ import './Journal.css';
 const Journal = ({ session, onClose }) => {
   const [activeTab, setActiveTab] = useState('ledger');
   const [logs, setLogs] = useState([]);
+  const [systemTrades, setSystemTrades] = useState([]);
   const [checklist, setChecklist] = useState({ news: false, sentiment: false, bias: false, risk: false });
   const [formData, setFormData] = useState({
     asset: '', type: 'LONG', pnl: '', notes: '', mood: 'Calm', discipline: 5,
@@ -34,6 +35,14 @@ const Journal = ({ session, onClose }) => {
       } else if (data) {
         setLogs(data);
       }
+
+      // Fetch AI System Trades
+      const { data: sysData } = await supabase
+        .from('system_trades')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+      if (sysData) setSystemTrades(sysData);
     };
     fetchLogs();
   }, [session?.user?.id]);
@@ -132,6 +141,7 @@ const Journal = ({ session, onClose }) => {
           <header className="journal-main-header">
             <div className="tab-group">
               <button className={activeTab === 'ledger' ? 'active' : ''} onClick={() => setActiveTab('ledger')}>TRADING LEDGER</button>
+              <button className={activeTab === 'ai_setups' ? 'active' : ''} onClick={() => setActiveTab('ai_setups')}>AI SETUPS</button>
               <button className={activeTab === 'intel' ? 'active' : ''} onClick={() => setActiveTab('intel')}>PERFORMANCE INTEL</button>
             </div>
           </header>
@@ -249,7 +259,41 @@ const Journal = ({ session, onClose }) => {
                   </div>
                 </div>
               </div>
-            )}
+            ) : activeTab === 'ai_setups' ? (
+              <div className="ledger-table" style={{ height: '100%' }}>
+                <div className="ledger-header" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr' }}>
+                  <span>DATE</span>
+                  <span>ASSET</span>
+                  <span>TF</span>
+                  <span style={{ color: 'var(--accent-color)' }}>ENTRY</span>
+                  <span style={{ color: 'var(--success-color)' }}>TARGET</span>
+                  <span style={{ color: 'var(--danger-color)' }}>STOP LOSS</span>
+                  <span>CONFIDENCE</span>
+                </div>
+                <div className="ledger-rows">
+                  {systemTrades.length > 0 ? (
+                    systemTrades.map(trade => (
+                      <div key={trade.id} className="ledger-row" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr', cursor: 'default' }}>
+                        <span className="ledger-date">{new Date(trade.created_at).toLocaleDateString()}</span>
+                        <span className="ledger-asset" style={{ fontWeight: 'bold' }}>{trade.symbol}</span>
+                        <span className="ledger-setup">{trade.timeframe}</span>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{trade.entry}</span>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--success-color)' }}>{trade.take_profit}</span>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--danger-color)' }}>{trade.stop_loss}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '4px', background: 'var(--surface-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${trade.confidence}%`, background: trade.confidence >= 75 ? 'var(--success-color)' : trade.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
+                          </div>
+                          <span style={{ fontSize: '0.7rem' }}>{trade.confidence}%</span>
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="empty-ledger">No AI setups generated yet. Analyze a chart to get started.</div>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

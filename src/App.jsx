@@ -302,6 +302,26 @@ function App() {
       const parsed = await analyzeWithProvider(aiProvider, apiKeys, config, session?.user?.id);
       setResults(parsed);
       retryCount.current = 0;
+
+      // Automatically store the generated setups into Supabase
+      if (session?.user?.id && parsed?.timeframes) {
+        const insertData = Object.keys(parsed.timeframes).map(tf => {
+          const tfData = parsed.timeframes[tf];
+          return {
+            user_id: session.user.id,
+            symbol: fullSymbol,
+            timeframe: tf,
+            entry: String(tfData.entry || ''),
+            take_profit: String(tfData.takeProfit || ''),
+            stop_loss: String(tfData.stopLoss || ''),
+            analysis: String(tfData.analysis || ''),
+            confidence: parseInt(tfData.confidence) || 0
+          };
+        });
+        supabase.from('system_trades').insert(insertData).then(({error}) => {
+          if (error) console.error('Error saving system trades to DB:', error);
+        });
+      }
     } catch (err) {
       console.error(err);
       const msg = String(err?.message || err || 'Unknown Error');
