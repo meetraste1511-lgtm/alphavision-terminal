@@ -110,28 +110,28 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       <div className="auth-hero">
         <div className="auth-hero-content">
           <div className="auth-hero-logo">
-            <Zap size={32} color="#2563eb" fill="#2563eb" />
+            <Zap size={48} color="#2563eb" fill="#2563eb" />
             <h1>AlphaVision</h1>
           </div>
           
-          <h2>Activate your <span>institutional access</span></h2>
+          <h2>Activate your <span>research access</span></h2>
           <p>
-            Complete your subscription to unlock the full power of AlphaVision. 
-            Get real-time signals, AI-driven research, and institutional-grade tools.
+            Complete your subscription to unlock the full institutional power of AlphaVision. 
+            Get real-time research signals, AI-driven synthesis, and global market intelligence.
           </p>
 
           <div className="auth-features">
             <div className="auth-feature-item">
-              <CheckCircle size={20} color="#10b981" /> Full Terminal Access
+              <CheckCircle size={20} color="#10b981" /> Full Research Access
             </div>
             <div className="auth-feature-item">
-              <CheckCircle size={20} color="#10b981" /> Priority Signal Feed
+              <CheckCircle size={20} color="#10b981" /> Priority Intelligence Feed
             </div>
             <div className="auth-feature-item">
-              <CheckCircle size={20} color="#10b981" /> Unlimited AI Analysis
+              <CheckCircle size={20} color="#10b981" /> Unlimited Research Scans
             </div>
             <div className="auth-feature-item">
-              <CheckCircle size={20} color="#10b981" /> 24/7 Market Support
+              <CheckCircle size={20} color="#10b981" /> Institutional Lab Tools
             </div>
           </div>
         </div>
