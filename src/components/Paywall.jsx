@@ -161,19 +161,20 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
               background: '#2563eb', 
               color: 'white', 
               border: 'none', 
-              padding: '16px', 
-              borderRadius: '12px', 
+              padding: '18px', 
+              borderRadius: '16px', 
               fontSize: '1.1rem', 
               fontWeight: '700', 
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)'
+              gap: '12px',
+              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)',
+              transition: 'all 0.2s ease'
             }}
           >
-            {isProcessing ? <RefreshCcw className="spin" size={20} /> : 'PAY NOW (FINAL VERSION)'}
+            {isProcessing ? <RefreshCcw className="spin" size={22} /> : 'Pay Securely with Razorpay'}
           </button>
 
           {status && (
