@@ -230,6 +230,19 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
             )}
           </div>
 
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+             <button 
+               onClick={async () => {
+                 const { supabase } = await import('../supabaseClient');
+                 await supabase.auth.signOut();
+                 window.location.reload();
+               }}
+               style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'underline' }}
+             >
+               Already have a paid account? Sign in here
+             </button>
+          </div>
+
           <div style={{ textAlign: 'left', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#1e293b', fontSize: '0.9rem' }}>
               <ShieldCheck size={18} color="#2563eb"/> Secure Checkout
