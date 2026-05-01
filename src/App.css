@@ -94,10 +94,11 @@
   width: 360px;
   flex-shrink: 0;
   background: var(--surface-color);
-  border-right: 1px solid var(--surface-border);
+  border-left: 1px solid var(--surface-border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  order: 2;
 }
 
 .sidebar-content {
@@ -494,6 +495,7 @@ input:focus, select:focus {
   background: var(--bg-color);
   position: relative;
   overflow: hidden;
+  order: 1;
 }
 
 .tv-widget-container {
