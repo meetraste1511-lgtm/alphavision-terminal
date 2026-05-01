@@ -112,7 +112,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
           <div className="data-node">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="node-label">Network Status</span>
-              <Activity size={16} color="#2563eb" />
+              <Zap size={16} color="#2563eb" />
             </div>
             <div className="node-value">Stable</div>
             <div className="node-graph"></div>
@@ -121,7 +121,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
           <div className="data-node">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="node-label">Market Latency</span>
-              <BarChart3 size={16} color="#2563eb" />
+              <Zap size={16} color="#2563eb" />
             </div>
             <div className="node-value">0.14ms</div>
             <div className="node-graph" style={{ background: 'linear-gradient(90deg, #10b981 0%, transparent 100%)' }}></div>
@@ -130,7 +130,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
           <div className="data-node">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="node-label">AI Throughput</span>
-              <TrendingUp size={16} color="#2563eb" />
+              <Zap size={16} color="#2563eb" />
             </div>
             <div className="node-value">Peak</div>
             <div className="node-graph"></div>
