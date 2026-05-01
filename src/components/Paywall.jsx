@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, ShieldCheck, CheckCircle, Loader } from 'lucide-react';
+import { Lock, ShieldCheck, CheckCircle, RefreshCcw } from 'lucide-react';
 import './Auth.css';
 
 export default function Paywall({ userEmail, userId, isNewRegistration }) {
@@ -23,11 +23,13 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
     script.onload = () => console.log('Razorpay script loaded successfully.');
     script.onerror = () => console.error('Failed to load Razorpay script.');
     document.body.appendChild(script);
-    return () => document.body.removeChild(script);
+    return () => {
+      try { document.body.removeChild(script); } catch (e) {}
+    };
   }, []);
 
   const handlePayment = async () => {
-    alert('Payment initiated. Please wait for the secure popup...');
+    window.alert('Payment system starting. If no other box appears, check for popup blockers.');
     console.log('Starting payment process for amount:', currentAmount);
     setIsProcessing(true);
     try {
@@ -55,17 +57,26 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       // 2. Open Razorpay Checkout
       if (!window.Razorpay) {
         console.log('Razorpay window object not found. Attempting to reload script...');
-        // Fallback: try to re-inject script if it failed
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
         document.body.appendChild(script);
-        throw new Error('Razorpay secure script is still loading. Please try again in 3 seconds.');
+        throw new Error('Razorpay secure script is still loading. Please wait 5 seconds and try again.');
       }
 
       console.log('Opening Razorpay checkout...');
+      
+      let rzpKey = 'rzp_live_Sk9c7D3csrStLq';
+      try {
+        if (import.meta && import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) {
+          rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+        }
+      } catch (e) {
+        console.warn('Could not read import.meta.env, using fallback key.');
+      }
+
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Sk9c7D3csrStLq',
+        key: rzpKey,
         amount: order.amount,
         currency: order.currency,
         name: "AlphaVision Terminal",
@@ -193,7 +204,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
               transition: 'all 0.2s ease'
             }}
           >
-            {isProcessing ? <><Loader className="spin" size={20} /> Processing...</> : 'PAY NOW (V3 DEPLOYED)'}
+            {isProcessing ? <><RefreshCcw className="spin" size={20} /> Processing...</> : 'PAY NOW (V4 READY)'}
           </button>
         </div>
 
