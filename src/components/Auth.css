@@ -1,22 +1,34 @@
 .auth-container {
+  /* Premium Light Mode Overrides */
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --surface-border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent-color: #2563eb;
+  --glow-accent: rgba(37, 99, 235, 0.15);
+  --danger-color: #ef4444;
+  --success-color: #10b981;
+
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   width: 100%;
-  background: var(--bg-color);
-  background-image: radial-gradient(circle at 50% -20%, var(--glow-accent), transparent 50%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   padding: 20px;
+  color: var(--text-primary);
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
   padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  background: var(--surface-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #ffffff;
 }
 
 .auth-header {
@@ -34,17 +46,11 @@
 
 .auth-header h2 {
   font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #fff, #a0aec0);
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e293b, #475569);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
-}
-
-[data-theme="light"] .auth-header h2 {
-  background: linear-gradient(135deg, #1a202c, #4a5568);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .auth-subtitle {
@@ -74,15 +80,12 @@
   width: 100%;
   padding-left: 42px;
   height: 48px;
-  background: rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
   border: 1px solid var(--surface-border);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-primary);
   transition: all 0.2s ease;
-}
-
-[data-theme="light"] .input-with-icon input {
-  background: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
 }
 
 .input-with-icon input:focus {
