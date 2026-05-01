@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Zap, Mail, Lock, CheckCircle } from 'lucide-react';
 import './Auth.css';
@@ -14,6 +14,10 @@ export default function Auth({ onLogin }) {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [showPaywall, setShowPaywall] = useState(false);
+
+  useEffect(() => {
+    console.log('Auth Component Mounted');
+  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -43,6 +47,7 @@ export default function Auth({ onLogin }) {
       } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        console.log('SignUp Successful, showing Paywall');
         setShowPaywall(true);
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password });
@@ -59,6 +64,7 @@ export default function Auth({ onLogin }) {
   };
 
   if (showPaywall) {
+    console.log('Rendering Paywall Component');
     return <Paywall userEmail={email} isNewRegistration={true} />;
   }
 
