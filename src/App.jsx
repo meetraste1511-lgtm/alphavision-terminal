@@ -94,8 +94,12 @@ function App() {
   const checkAccess = async (user, retryCount = 0) => {
     if (!user) return;
     
-    // Admin & Developer Bypass
-    if (user.email === ADMIN_EMAIL || user.email === 'kajalraste13@gmail.com') {
+    console.log('Checking access for:', user.email);
+    
+    // Master Bypass List (Case-Insensitive)
+    const masters = [ADMIN_EMAIL?.toLowerCase(), 'kajalraste13@gmail.com'];
+    if (masters.includes(user.email?.toLowerCase())) {
+      console.log('Master access granted.');
       setHasAccess(true);
       return;
     }
