@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Zap, Mail, Lock, LogIn, UserPlus, CheckCircle } from 'lucide-react';
+import { Zap, Mail, Lock, LogIn, UserPlus, CheckCircle, Activity, BarChart3, TrendingUp } from 'lucide-react';
 import './Auth.css';
 
 import Paywall from './Paywall';
@@ -66,6 +66,35 @@ export default function Auth({ onLogin }) {
   return (
     <div className="auth-container">
       <div className="auth-hero">
+        <div className="auth-hero-visuals">
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">Global Sentiment</span>
+              <Activity size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">84.2%</div>
+            <div className="node-graph"></div>
+          </div>
+          
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">Neural Synapse</span>
+              <BarChart3 size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">Active</div>
+            <div className="node-graph" style={{ background: 'linear-gradient(90deg, #10b981 0%, transparent 100%)' }}></div>
+          </div>
+
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">Research Grounding</span>
+              <TrendingUp size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">Validated</div>
+            <div className="node-graph"></div>
+          </div>
+        </div>
+
         <div className="auth-hero-content">
           <div className="auth-hero-logo">
             <Zap size={48} color="#2563eb" fill="#2563eb" />

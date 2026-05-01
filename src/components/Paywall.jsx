@@ -108,6 +108,35 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   return (
     <div className="auth-container">
       <div className="auth-hero">
+        <div className="auth-hero-visuals">
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">Network Status</span>
+              <Activity size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">Stable</div>
+            <div className="node-graph"></div>
+          </div>
+          
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">Market Latency</span>
+              <BarChart3 size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">0.14ms</div>
+            <div className="node-graph" style={{ background: 'linear-gradient(90deg, #10b981 0%, transparent 100%)' }}></div>
+          </div>
+
+          <div className="data-node">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="node-label">AI Throughput</span>
+              <TrendingUp size={16} color="#2563eb" />
+            </div>
+            <div className="node-value">Peak</div>
+            <div className="node-graph"></div>
+          </div>
+        </div>
+
         <div className="auth-hero-content">
           <div className="auth-hero-logo">
             <Zap size={48} color="#2563eb" fill="#2563eb" />
