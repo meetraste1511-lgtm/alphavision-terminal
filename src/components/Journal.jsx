@@ -323,8 +323,8 @@ const Journal = ({ session, onClose }) => {
                           
                           {isExpanded && sortedTfs.map(trade => (
                             <div key={trade.id || trade.timeframe} className="ledger-row" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr', cursor: 'default', marginLeft: '20px', padding: '12px', background: 'transparent', border: 'none', borderLeft: '2px solid var(--accent-color)' }}>
-                              <span className="ledger-date"></span>
-                              <span className="ledger-asset"></span>
+                              <span className="ledger-date" style={{ opacity: 0.5, fontSize: '0.75rem' }}>↳ {new Date(trade.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                              <span className="ledger-asset" style={{ opacity: 0.5, fontSize: '0.75rem' }}>{trade.symbol.replace('BINANCE:', '')}</span>
                               <span className="ledger-setup" style={{ fontWeight: 'bold' }}>{trade.timeframe}</span>
                               <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{trade.entry}</span>
                               <span style={{ fontFamily: 'monospace', color: 'var(--success-color)' }}>{trade.take_profit}</span>
