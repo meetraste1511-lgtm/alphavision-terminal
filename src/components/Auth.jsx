@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Zap, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { Zap, Mail, Lock, LogIn, UserPlus, CheckCircle } from 'lucide-react';
 import './Auth.css';
 
 import Paywall from './Paywall';
@@ -65,69 +65,63 @@ export default function Auth({ onLogin }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-card glass-panel">
-        <div className="auth-header">
-          <div className="logo">
-            <Zap size={28} color="var(--accent-color)" fill="var(--accent-color)" />
-            <h2>AlphaVision</h2>
+      <div className="auth-hero">
+        <div className="auth-hero-content">
+          <div className="auth-hero-logo">
+            <Zap size={32} color="#2563eb" fill="#2563eb" />
+            <h1>AlphaVision</h1>
           </div>
-          <p className="auth-subtitle">
-            {isForgotPassword ? 'Reset Your Password' : 'Institutional Grade Trading Terminal'}
+          
+          <h2>Supercharge your <span>trading intelligence</span></h2>
+          <p>
+            Join the next generation of institutional traders using AI-driven research 
+            to identify high-probability opportunities in global markets.
           </p>
-        </div>
 
-        <form onSubmit={handleAuth} className="auth-form">
-          <div className="input-group">
-            <label>Email Address</label>
-            <div className="input-with-icon">
-              <Mail size={18} className="input-icon" />
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          <div className="auth-features">
+            <div className="auth-feature-item">
+              <CheckCircle size={20} color="#10b981" /> 100+ Market Scanners
+            </div>
+            <div className="auth-feature-item">
+              <CheckCircle size={20} color="#10b981" /> AI Research Grounding
+            </div>
+            <div className="auth-feature-item">
+              <CheckCircle size={20} color="#10b981" /> Institutional Risk Guard
+            </div>
+            <div className="auth-feature-item">
+              <CheckCircle size={20} color="#10b981" /> Real-time Global Data
             </div>
           </div>
+        </div>
+      </div>
 
-          {!isForgotPassword && (
+      <div className="auth-form-panel">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h2>{isForgotPassword ? 'Reset Password' : isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
+            <p className="auth-subtitle">
+              {isForgotPassword 
+                ? 'Enter your email to receive a reset link.' 
+                : 'Enter your credentials to access the terminal.'}
+            </p>
+          </div>
+
+          <form onSubmit={handleAuth} className="auth-form">
+            {error && <div className="auth-error">{error}</div>}
+            {message && <div className="auth-success">{message}</div>}
+
             <div className="input-group">
-              <label>Password</label>
+              <label>Email Address</label>
               <div className="input-with-icon">
-                <Lock size={18} className="input-icon" />
+                <Mail size={18} className="input-icon" />
                 <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-              {!isSignUp && (
-                <button 
-                  type="button" 
-                  className="forgot-link" 
-                  onClick={() => { setIsForgotPassword(true); setError(null); setMessage(null); }}
-                >
-                  Forgot password?
-                </button>
-              )}
-            </div>
-          )}
-
-          {error && <div className="auth-error">{error}</div>}
-          {message && <div className="auth-success">{message}</div>}
-
-          <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
-            {loading ? 'Processing...' : isForgotPassword ? (
-              'Send Reset Link'
-            ) : isSignUp ? (
-              <><UserPlus size={18} /> Create Account</>
-            ) : (
-              <><LogIn size={18} /> Access Terminal</>
-            )}
-          </button>
           
           {!isForgotPassword && (
             <>
