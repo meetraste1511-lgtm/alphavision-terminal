@@ -227,7 +227,7 @@ const Journal = ({ session, onClose }) => {
                   </div>
                 </div>
               </>
-            ) : (
+            ) : activeTab === 'intel' ? (
               <div className="intel-panel">
                 <div className="intel-grid">
                   <div className="intel-card heatmap">
