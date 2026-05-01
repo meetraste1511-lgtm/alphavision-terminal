@@ -10,7 +10,7 @@ export default function Paywall({ userEmail }) {
   
   const plans = {
     monthly: { amount: 1199, label: '1 Month', desc: '₹1,199 / month' },
-    quarterly: { amount: 3000, label: '3 Months', desc: '₹1,000 / month (Save ₹597)' }
+    quarterly: { amount: 3000, label: '3 Months', desc: '₹3,000 Total (Save ₹597)' }
   };
   
   const currentAmount = plans[plan].amount;
