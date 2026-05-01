@@ -8,13 +8,13 @@
 }
 
 .auth-hero {
-  flex: 1;
+  flex: 1.2;
   background: #ffffff;
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 80px;
+  padding: 60px 80px;
   overflow: hidden;
 }
 
@@ -26,46 +26,30 @@
   background-image: 
     linear-gradient(to right, rgba(37, 99, 235, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(circle at 0% 0%, black, transparent 80%);
-}
-
-/* Gradient accent */
-.auth-hero::after {
-  content: '';
-  position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 40%;
-  height: 40%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
-  filter: blur(60px);
-  pointer-events: none;
+  background-size: 30px 30px;
+  mask-image: radial-gradient(circle at 0% 50%, black, transparent 90%);
 }
 
 .auth-hero-visuals {
-  position: absolute;
-  right: -50px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 400px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 20px;
-  opacity: 0.8;
-  pointer-events: none;
+  margin-top: 60px;
+  opacity: 0.9;
+  z-index: 2;
 }
 
 .data-node {
+  flex: 1;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  animation: float 6s ease-in-out infinite;
+  gap: 6px;
+  border-left: 3px solid #2563eb;
 }
 
 .data-node:nth-child(2) { animation-delay: -2s; }

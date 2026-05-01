@@ -108,48 +108,19 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   return (
     <div className="auth-container">
       <div className="auth-hero">
-        <div className="auth-hero-visuals">
-          <div className="data-node">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="node-label">Network Status</span>
-              <Zap size={16} color="#2563eb" />
-            </div>
-            <div className="node-value">Stable</div>
-            <div className="node-graph"></div>
-          </div>
-          
-          <div className="data-node">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="node-label">Market Latency</span>
-              <Zap size={16} color="#2563eb" />
-            </div>
-            <div className="node-value">0.14ms</div>
-            <div className="node-graph" style={{ background: 'linear-gradient(90deg, #10b981 0%, transparent 100%)' }}></div>
-          </div>
-
-          <div className="data-node">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="node-label">AI Throughput</span>
-              <Zap size={16} color="#2563eb" />
-            </div>
-            <div className="node-value">Peak</div>
-            <div className="node-graph"></div>
-          </div>
-        </div>
-
         <div className="auth-hero-content">
           <div className="auth-hero-logo">
             <Zap size={48} color="#2563eb" fill="#2563eb" />
             <h1>AlphaVision</h1>
           </div>
           
-          <h2>Activate your <span>research access</span></h2>
-          <p>
+          <h2 style={{ marginBottom: '16px' }}>Activate your <span>research access</span></h2>
+          <p style={{ marginBottom: '32px' }}>
             Complete your subscription to unlock the full institutional power of AlphaVision. 
             Get real-time research signals, AI-driven synthesis, and global market intelligence.
           </p>
 
-          <div className="auth-features">
+          <div className="auth-features" style={{ marginBottom: '48px' }}>
             <div className="auth-feature-item">
               <CheckCircle size={20} color="#10b981" /> Full Research Access
             </div>
@@ -161,6 +132,35 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
             </div>
             <div className="auth-feature-item">
               <CheckCircle size={20} color="#10b981" /> Institutional Lab Tools
+            </div>
+          </div>
+
+          <div className="auth-hero-visuals">
+            <div className="data-node">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="node-label">Network Status</span>
+                <Zap size={16} color="#2563eb" />
+              </div>
+              <div className="node-value">Stable</div>
+              <div className="node-graph"></div>
+            </div>
+            
+            <div className="data-node">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="node-label">Market Latency</span>
+                <Zap size={16} color="#2563eb" />
+              </div>
+              <div className="node-value">0.14ms</div>
+              <div className="node-graph" style={{ background: 'linear-gradient(90deg, #10b981 0%, transparent 100%)' }}></div>
+            </div>
+
+            <div className="data-node">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="node-label">AI Throughput</span>
+                <Zap size={16} color="#2563eb" />
+              </div>
+              <div className="node-value">Peak</div>
+              <div className="node-graph"></div>
             </div>
           </div>
         </div>
