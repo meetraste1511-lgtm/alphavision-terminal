@@ -97,7 +97,12 @@ function App() {
     console.log('Checking access for:', user.email);
 
     // Master Bypass List (Case-Insensitive)
-    const masters = [ADMIN_EMAIL?.toLowerCase(), 'kajalraste13@gmail.com'];
+    const masters = [
+      ADMIN_EMAIL?.toLowerCase(), 
+      'kajalraste13@gmail.com',
+      'bhaskaryasham@gmil.com',
+      'bhaskaryasham@gmail.com'
+    ];
     if (masters.includes(user.email?.toLowerCase())) {
       console.log('Master access granted.');
       setHasAccess(true);
