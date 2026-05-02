@@ -10,6 +10,7 @@ import Disclaimer from './components/Disclaimer';
 import Journal from './components/Journal';
 import NewsPanel from './components/NewsPanel';
 import IntelligenceLab from './components/IntelligenceLab';
+import { resolveTicker } from './services/tickerResolver';
 import './App.css';
 import './mobile.css';
 import Profile from './components/Profile';
@@ -232,12 +233,13 @@ function App() {
     
     // Auto-Sync Chart with a 800ms debounce
     const timer = setTimeout(() => {
-      if (directAsset.trim()) {
-        setChartSymbol(directAsset);
+      const resolved = resolveTicker(directAsset);
+      if (resolved.trim()) {
+        setChartSymbol(resolved);
         
         // Intelligence: Auto-switch to NSE for major Indian stocks if on default
-        const indianStocks = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL', 'WIPRO', 'ITC', 'KOTAKBANK'];
-        if (indianStocks.includes(directAsset.toUpperCase()) && exchange === 'BINANCE') {
+        const indianStocks = ['INFY', 'RELIANCE', 'TCS', 'TATAMOTORS', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL', 'WIPRO', 'ITC', 'KOTAKBANK'];
+        if (indianStocks.includes(resolved.toUpperCase()) && exchange === 'BINANCE') {
           setExchange('NSE');
         }
       }
@@ -366,13 +368,14 @@ function App() {
     setResults(null);
 
     try {
-      const fullSymbol = exchange ? `${exchange}:${directAsset}` : directAsset;
+      const resolved = resolveTicker(directAsset);
+      const fullSymbol = exchange ? `${exchange}:${resolved}` : resolved;
       const assetName = inputMode === 'direct' ? fullSymbol : 'the asset shown in this chart';
 
       let marketDataText = '';
       let currentPrice = null;
       if (inputMode === 'direct') {
-        const marketCtx = await getMarketContext(directAsset, exchange, activeTimeframe, apiKeys.twelvedata);
+        const marketCtx = await getMarketContext(resolved, exchange, activeTimeframe, apiKeys.twelvedata);
         marketDataText = marketCtx.text;
         currentPrice = marketCtx.lastPrice;
       }
@@ -446,7 +449,8 @@ function App() {
   };
 
   const getTvSymbol = () => {
-    const up = directAsset.toUpperCase();
+    const resolved = resolveTicker(directAsset);
+    const up = resolved.toUpperCase();
     if (up === 'NIFTY') return 'NSE:NIFTY';
     if (up === 'BANKNIFTY') return 'NSE:BANKNIFTY';
     if (up === 'FINNIFTY') return 'NSE:FINNIFTY';
