@@ -184,17 +184,3 @@ const itemStyle = {
   cursor: 'pointer',
   textAlign: 'left',
 };
-
-const itemStyle = {
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '10px 16px',
-  background: 'none',
-  border: 'none',
-  color: 'var(--text-primary)',
-  fontSize: '0.9rem',
-  cursor: 'pointer',
-  textAlign: 'left',
-};
