@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BookOpen, CheckCircle2, TrendingUp, Brain, Plus, Calendar, Target, ShieldCheck, X } from 'lucide-react';
+import { BookOpen, CheckCircle2, TrendingUp, Brain, Plus, Calendar, Target, CheckCircle, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import './Journal.css';
 
@@ -219,7 +219,7 @@ const Journal = ({ session, onClose }) => {
 
                   <div className="form-footer-row">
                     <div className="institutional-hint">
-                      <ShieldCheck size={14} color="var(--success-color)" />
+                      <CheckCircle size={14} color="var(--success-color)" />
                       <span>Data synced with AlphaVision Cloud</span>
                     </div>
                     <button type="submit" className="btn-submit-log" disabled={isSubmitting}>

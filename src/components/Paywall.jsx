@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ShieldCheck, CheckCircle, RefreshCcw, Zap } from 'lucide-react';
+import { Lock, CheckCircle, CheckCircle, RefreshCcw, Zap } from 'lucide-react';
 import './Auth.css';
 
 export default function Paywall({ userEmail, userId, isNewRegistration }) {
@@ -245,7 +245,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
 
           <div style={{ textAlign: 'left', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#1e293b', fontSize: '0.9rem' }}>
-              <ShieldCheck size={18} color="#2563eb"/> Secure Checkout
+              <CheckCircle size={18} color="#2563eb"/> Secure Checkout
             </h4>
             <p style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: '1.5' }}>
               Powered by Razorpay. Your transaction is encrypted and protected by institutional-grade security.

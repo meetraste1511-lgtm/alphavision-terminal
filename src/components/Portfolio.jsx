@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Cpu, BarChart3, Database, ShieldCheck, ExternalLink, Mail, Code2, Globe, Activity, User } from 'lucide-react';
+import { Zap, Cpu, BarChart3, Database, CheckCircle, ExternalLink, Mail, Code2, Globe, Activity, User } from 'lucide-react';
 import './Portfolio.css';
 
 const Portfolio = ({ onClose }) => {
@@ -24,7 +24,7 @@ const Portfolio = ({ onClose }) => {
     },
     {
       title: "Risk & Confluence Engine",
-      icon: <ShieldCheck className="h-6 w-6 text-amber-400" />,
+      icon: <CheckCircle className="h-6 w-6 text-amber-400" />,
       desc: "Quantitative risk modeling based on fractional risk parameters and mandatory 1:2 R:R validation to ensure disciplined research execution.",
       tech: ["Quant Logic", "LocalDB", "Supabase"]
     }

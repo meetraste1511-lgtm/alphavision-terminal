@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, BookOpen, Layers, Globe, FileText, ArrowRight, ShieldCheck, Zap, X } from 'lucide-react';
+import { Search, BookOpen, Layers, Globe, FileText, ArrowRight, CheckCircle, Zap, X } from 'lucide-react';
 import './IntelligenceLab.css';
 
 // Institutional Dossier Renderer (Internal)
@@ -133,7 +133,7 @@ const IntelligenceLab = ({ onClose }) => {
             </div>
 
             <button className="btn-run-research" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-              <ShieldCheck size={16} />
+              <CheckCircle size={16} />
               <span>Feature In Development</span>
             </button>
           </div>

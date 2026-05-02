@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, UserPlus, HelpCircle, LifeBuoy, Bell, Moon, Sun, Globe, LogOut, X, Zap, Calendar, ShieldCheck } from 'lucide-react';
+import { Settings, UserPlus, HelpCircle, LifeBuoy, Bell, Moon, Sun, Globe, LogOut, X, Zap, Calendar, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 export default function Profile({ session, onClose, theme, onToggleTheme, onOpenSettings }) {
@@ -72,7 +72,7 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
           <div style={{ background: 'white', padding: '10px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>Access Tier</div>
             <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ShieldCheck size={12} /> Alpha
+              <CheckCircle size={12} /> Alpha
             </div>
           </div>
         </div>
