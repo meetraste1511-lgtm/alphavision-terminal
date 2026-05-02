@@ -1,29 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Calendar, ShieldCheck, LogOut, X, Zap } from 'lucide-react';
+import React from 'react';
+import { Settings, UserPlus, HelpCircle, LifeBuoy, Bell, Moon, Sun, Globe, LogOut, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
-export default function Profile({ session, onClose }) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function getProfile() {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (data) setProfile(data);
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    getProfile();
-  }, [session]);
+export default function Profile({ session, onClose, theme, onToggleTheme }) {
+  const user = session?.user;
+  const metadata = user?.user_metadata || {};
+  
+  // Extract Name: Google Full Name or Email prefix
+  const displayName = metadata.full_name || user?.email?.split('@')[0] || 'Researcher';
+  const displayAvatar = metadata.avatar_url || null;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -31,62 +16,139 @@ export default function Profile({ session, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content profile-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="avatar-circle" style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-              <User size={20} />
+    <div className="profile-dropdown-overlay" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000 }}>
+      <div 
+        className="profile-dropdown-card" 
+        onClick={e => e.stopPropagation()} 
+        style={{ 
+          position: 'absolute', 
+          top: '60px', 
+          right: '20px', 
+          width: '280px', 
+          background: 'var(--bg-primary)', 
+          borderRadius: '12px', 
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)', 
+          border: '1px solid var(--surface-border)',
+          overflow: 'hidden',
+          animation: 'slideDown 0.2s ease-out'
+        }}
+      >
+        {/* User Header */}
+        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {displayAvatar ? (
+            <img src={displayAvatar} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+          ) : (
+            <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>
+              {displayName.charAt(0).toUpperCase()}
             </div>
-            <h3>Researcher Profile</h3>
+          )}
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
           </div>
-          <button className="icon-btn" onClick={onClose}><X size={20} /></button>
         </div>
 
-        <div className="profile-body" style={{ padding: '24px 0' }}>
-          <div className="profile-info-item" style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Email Address</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', color: 'var(--text-primary)' }}>
-              <Mail size={16} color="var(--accent-color)" />
-              {session.user.email}
+        {/* Menu Items */}
+        <div style={{ padding: '8px 0' }}>
+          <button className="dropdown-item" style={itemStyle}>
+            <Settings size={18} />
+            <span>Settings and billing</span>
+          </button>
+          
+          <button className="dropdown-item" style={{ ...itemStyle, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <UserPlus size={18} />
+              <span>Refer a friend</span>
             </div>
-          </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>$0</span>
+          </button>
 
-          <div className="profile-info-item" style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Subscription Status</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', color: '#10b981' }}>
-              <ShieldCheck size={16} color="#10b981" />
-              Institutional Active
+          <div style={{ height: '1px', background: 'var(--surface-border)', margin: '8px 0' }}></div>
+
+          <button className="dropdown-item" style={itemStyle}>
+            <HelpCircle size={18} />
+            <span>Help Center</span>
+          </button>
+          
+          <button className="dropdown-item" style={itemStyle}>
+            <LifeBuoy size={18} />
+            <span>Support requests</span>
+          </button>
+          
+          <button className="dropdown-item" style={{ ...itemStyle, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Bell size={18} />
+              <span>What's new</span>
             </div>
-          </div>
+            <span style={{ background: '#ef4444', color: 'white', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '10px' }}>11</span>
+          </button>
 
-          <div className="profile-info-item" style={{ marginBottom: '32px' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Research Expiry</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', color: 'var(--text-primary)' }}>
-              <Calendar size={16} color="var(--accent-color)" />
-              {profile?.subscription_expiry_date 
-                ? new Date(profile.subscription_expiry_date).toLocaleDateString() 
-                : 'Account Syncing...'}
+          <div style={{ height: '1px', background: 'var(--surface-border)', margin: '8px 0' }}></div>
+
+          <button className="dropdown-item" style={{ ...itemStyle, justifyContent: 'space-between' }} onClick={onToggleTheme}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+              <span>Dark theme</span>
             </div>
-          </div>
-
-          <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid var(--surface-border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              <Zap size={14} color="var(--accent-color)" />
-              Intelligence Tier: Alpha Terminal
+            <div style={{ width: '32px', height: '18px', background: theme === 'dark' ? 'var(--accent-color)' : '#cbd5e1', borderRadius: '9px', position: 'relative' }}>
+              <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: theme === 'dark' ? '16px' : '2px', transition: 'all 0.2s' }}></div>
             </div>
-          </div>
+          </button>
 
-          <button 
-            onClick={handleSignOut}
-            className="btn-secondary" 
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#ef4444', borderColor: '#fee2e2' }}
-          >
+          <button className="dropdown-item" style={{ ...itemStyle, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Globe size={18} />
+              <span>Language</span>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>English ›</span>
+          </button>
+
+          <div style={{ height: '1px', background: 'var(--surface-border)', margin: '8px 0' }}></div>
+
+          <button className="dropdown-item" style={{ ...itemStyle, color: '#ef4444' }} onClick={handleSignOut}>
             <LogOut size={18} />
-            Sign Out of Terminal
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
+
+      <style>{`
+        .dropdown-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          background: none;
+          border: none;
+          color: var(--text-primary);
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: background 0.2s;
+          text-align: left;
+        }
+        .dropdown-item:hover {
+          background: var(--bg-secondary);
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
+
+const itemStyle = {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '10px 16px',
+  background: 'none',
+  border: 'none',
+  color: 'var(--text-primary)',
+  fontSize: '0.9rem',
+  cursor: 'pointer',
+  textAlign: 'left',
+};

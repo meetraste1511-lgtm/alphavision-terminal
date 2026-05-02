@@ -764,7 +764,14 @@ function App() {
       {showPortfolio && <Portfolio onClose={() => setShowPortfolio(false)} />}
       {showJournal && <Journal session={session} onClose={() => setShowJournal(false)} />}
       {showIntelligenceLab && <IntelligenceLab onClose={() => setShowIntelligenceLab(false)} />}
-      {showProfile && <Profile session={session} onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <Profile 
+          session={session} 
+          onClose={() => setShowProfile(false)} 
+          theme={theme} 
+          onToggleTheme={toggleTheme}
+        />
+      )}
       <Disclaimer />
     </div>
   );
