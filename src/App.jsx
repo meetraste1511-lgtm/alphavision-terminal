@@ -337,9 +337,34 @@ function App() {
   const processFile = (file) => {
     if (!file || !file.type.startsWith('image/')) { setError('Please upload a valid image file.'); return; }
     setError('');
-    setImage(URL.createObjectURL(file));
+    
+    // Institutional Compression Engine
     const reader = new FileReader();
-    reader.onloadend = () => setImageBase64(reader.result.split(',')[1]);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Max dimension 1600px for AI processing
+        const MAX_DIM = 1600;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) { height *= MAX_DIM / width; width = MAX_DIM; }
+          else { width *= MAX_DIM / height; height = MAX_DIM; }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        setImage(compressedBase64);
+        setImageBase64(compressedBase64.split(',')[1]);
+      };
+      img.src = e.target.result;
+    };
     reader.readAsDataURL(file);
   };
 

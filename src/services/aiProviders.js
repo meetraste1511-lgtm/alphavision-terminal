@@ -159,7 +159,20 @@ export async function analyzeWithProvider(provider, keys, config, userId) {
   }
 
   if (isImageMode) {
-    finalPrompt += `\n\n[USER PROVIDED A CHART IMAGE. ANALYZE THE PRICE ACTION VISUALLY.]`;
+    if (provider !== 'gemini') {
+      throw new Error("Vision analysis is currently only supported via Gemini. Please switch to Gemini in Settings.");
+    }
+    finalPrompt += `
+[CRITICAL: VISION ANALYSIS MODE]
+The user has provided a screenshot of a technical chart. You must use your vision capabilities to:
+1. Identify the Asset Name and Current Price from the image text/labels.
+2. Detect major Technical Patterns (e.g., Head & Shoulders, Double Top/Bottom, Flag).
+3. Locate visible Order Blocks, Fair Value Gaps, and Liquidity Pools.
+4. Determine the Trend Bias (Bullish/Bearish/Neutral) based purely on the price action in the image.
+5. Project Entry, Stop Loss, and Take Profit levels that are mathematically consistent with the candles shown in the screenshot.
+
+Do NOT use any historical memory or external data. Base 100% of your analysis on the provided image pixels.
+`;
   } else {
     finalPrompt += `\n\n[LIVE MARKET DATA SUPPLIED BY INSTITUTIONAL API]\n`;
     if (currentPrice) {
