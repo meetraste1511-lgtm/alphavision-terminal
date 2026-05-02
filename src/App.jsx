@@ -591,6 +591,12 @@ function App() {
             <Globe size={14} style={{ marginRight: '6px' }} />
             Global Wire
           </button>
+          
+          <div className="institutional-badge">
+            <ShieldCheck size={14} color="#00ff9d" />
+            <span>v3.1.0</span>
+          </div>
+
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
           <button className="profile-trigger" onClick={() => setShowProfile(true)} style={{ marginLeft: '8px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}>
