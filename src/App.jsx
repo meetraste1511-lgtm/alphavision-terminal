@@ -229,7 +229,22 @@ function App() {
   useEffect(() => {
     setLivePrice(null);
     setLivePriceSource('');
-  }, [directAsset, exchange]);
+    
+    // Auto-Sync Chart with a 800ms debounce
+    const timer = setTimeout(() => {
+      if (directAsset.trim()) {
+        setChartSymbol(directAsset);
+        
+        // Intelligence: Auto-switch to NSE for major Indian stocks if on default
+        const indianStocks = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL', 'WIPRO', 'ITC', 'KOTAKBANK'];
+        if (indianStocks.includes(directAsset.toUpperCase()) && exchange === 'BINANCE') {
+          setExchange('NSE');
+        }
+      }
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, [directAsset]);
 
   const fileInputRef = useRef(null);
   const retryCount = useRef(0);
