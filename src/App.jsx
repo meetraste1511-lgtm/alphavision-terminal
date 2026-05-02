@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'; // AV-LABS Core Active
-import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers, LogOut } from 'lucide-react';
+import { UploadCloud, X, Activity, Target, ShieldAlert, ShieldCheck, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers, LogOut } from 'lucide-react';
 import { getMarketContext } from './services/marketData';
 import { analyzeWithProvider } from './services/aiProviders';
 import { supabase } from './supabaseClient';
