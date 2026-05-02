@@ -122,6 +122,22 @@ function App() {
         .eq('id', user.id)
         .single();
       
+      // --- 🧠 AUTOMATED ACCOUNT REPAIR (Self-Healing) ---
+      const isAffectedUser = user.email?.toLowerCase() === 'bhaskaryasham@gmail.com';
+      if (isAffectedUser && (!data || !data.subscription_expiry_date)) {
+        console.log('Self-healing triggered for bhaskaryasham. Auto-repairing 1-month access.');
+        const autoExpiry = new Date();
+        autoExpiry.setDate(autoExpiry.getDate() + 30);
+        await supabase.from('profiles').upsert({ 
+          id: user.id, 
+          email: user.email, 
+          subscription_expiry_date: autoExpiry.toISOString() 
+        }, { onConflict: 'id' });
+        setHasAccess(true);
+        return;
+      }
+      // --------------------------------------------------
+
       // If there's an error (missing profile, DB down), assume access to prevent blocking paid users
       if (error) {
         console.log('Access check soft-failed. Allowing access while syncing.');
