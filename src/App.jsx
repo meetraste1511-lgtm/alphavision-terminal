@@ -13,6 +13,7 @@ import IntelligenceLab from './components/IntelligenceLab';
 import { resolveTicker } from './services/tickerResolver';
 import './App.css';
 import './mobile.css';
+import './beast-mode.css';
 import Profile from './components/Profile';
 
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', 'Daily'];
@@ -592,9 +593,9 @@ function App() {
             Global Wire
           </button>
           
-          <div className="institutional-badge">
+          <div className="institutional-badge beast-pulse">
             <Activity size={14} color="#00ff9d" />
-            <span>v3.1.0</span>
+            <span>v4.0.0 BEAST</span>
           </div>
 
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
@@ -705,13 +706,13 @@ function App() {
                 </div>
                 {activeResult && (
                   <div className="sidebar-section">
-                    <div className="confidence-container">
+                    <div className="confidence-container glass-panel" style={{ padding: '12px' }}>
                       <div className="confidence-header">
-                        <span>Confidence ({activeTimeframe})</span>
-                        <span style={{ color: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}>{activeResult.confidence}%</span>
+                        <span className="beast-text">Neural Confidence ({activeTimeframe})</span>
+                        <span className="beast-glitch" style={{ color: activeResult.confidence >= 75 ? 'var(--neon-green)' : activeResult.confidence >= 50 ? 'var(--warning)' : 'var(--danger)' }}>{activeResult.confidence}%</span>
                       </div>
                       <div className="confidence-track">
-                        <div className="confidence-fill" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--warning-color)' : 'var(--danger-color)' }}></div>
+                        <div className="confidence-fill beast-glow" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--neon-green)' : activeResult.confidence >= 50 ? 'var(--warning)' : 'var(--danger)' }}></div>
                       </div>
                     </div>
                     <div className="levels-grid" style={{ marginTop: '16px' }}>
