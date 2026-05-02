@@ -13,4 +13,24 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom'],
+          'ui-core': ['lucide-react'],
+          'institutional-logic': ['./src/services/aiProviders', './src/services/marketData']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 })
