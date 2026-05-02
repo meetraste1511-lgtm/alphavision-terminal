@@ -314,17 +314,23 @@ const Journal = ({ session, onClose }) => {
                             onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
                           >
                             <span className="ledger-date">{new Date(group.created_at).toLocaleDateString()} {new Date(group.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            <span className="ledger-asset" style={{ fontWeight: 'bold' }}>{group.symbol}</span>
-                            <span style={{ color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span>Multi-Timeframe Analysis ({group.timeframes.length} TFs)</span>
-                              <span>{isExpanded ? '▲' : '▼'}</span>
+                            <span className="ledger-asset" style={{ fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '0.05em' }}>
+                              {group.symbol.includes(':') ? group.symbol.split(':')[1] : group.symbol}
+                            </span>
+                            <span style={{ color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                              <span style={{ opacity: 0.8 }}>Institutional Intelligence • {group.timeframes.length} TF Core Synthesis</span>
+                              <span style={{ background: 'rgba(var(--accent-rgb), 0.1)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                                {isExpanded ? 'CLOSE INTEL ▲' : 'VIEW ANALYSIS ▼'}
+                              </span>
                             </span>
                           </div>
                           
                           {isExpanded && sortedTfs.map(trade => (
                             <div key={trade.id || trade.timeframe} className="ledger-row" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr 2fr', cursor: 'default', marginLeft: '20px', padding: '12px', background: 'transparent', border: 'none', borderLeft: '2px solid var(--accent-color)' }}>
                               <span className="ledger-date" style={{ opacity: 0.5, fontSize: '0.75rem' }}>↳ {new Date(trade.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                              <span className="ledger-asset" style={{ opacity: 0.5, fontSize: '0.75rem' }}>{trade.symbol.replace('BINANCE:', '')}</span>
+                              <span className="ledger-asset" style={{ opacity: 0.5, fontSize: '0.75rem' }}>
+                                {trade.symbol.includes(':') ? trade.symbol.split(':')[1] : trade.symbol}
+                              </span>
                               <span className="ledger-setup" style={{ fontWeight: 'bold' }}>{trade.timeframe}</span>
                               <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{trade.entry}</span>
                               <span style={{ fontFamily: 'monospace', color: 'var(--success-color)' }}>{trade.take_profit}</span>
