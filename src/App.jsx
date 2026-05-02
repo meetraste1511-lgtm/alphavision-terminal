@@ -12,6 +12,7 @@ import NewsPanel from './components/NewsPanel';
 import IntelligenceLab from './components/IntelligenceLab';
 import './App.css';
 import './mobile.css';
+import Profile from './components/Profile';
 
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', 'Daily'];
 
@@ -76,6 +77,7 @@ function App() {
   const [showJournal, setShowJournal] = useState(false);
   const [showNews, setShowNews] = useState(true);
   const [showIntelligenceLab, setShowIntelligenceLab] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [session, setSession] = useState(null);
   const [wsPrice, setWsPrice] = useState(null);
   const wsRef = useRef(null);
@@ -512,7 +514,11 @@ function App() {
           </button>
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
-          <button className="icon-btn" onClick={() => supabase.auth.signOut()} title="Sign Out"><LogOut size={20} /></button>
+          <button className="profile-trigger" onClick={() => setShowProfile(true)} style={{ marginLeft: '8px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}>
+            <div style={{ width: '36px', height: '36px', background: 'var(--accent-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', border: '2px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{session?.user?.email?.charAt(0).toUpperCase()}</span>
+            </div>
+          </button>
         </div>
       </header>
 
@@ -744,6 +750,7 @@ function App() {
       {showPortfolio && <Portfolio onClose={() => setShowPortfolio(false)} />}
       {showJournal && <Journal session={session} onClose={() => setShowJournal(false)} />}
       {showIntelligenceLab && <IntelligenceLab onClose={() => setShowIntelligenceLab(false)} />}
+      {showProfile && <Profile session={session} onClose={() => setShowProfile(false)} />}
       <Disclaimer />
     </div>
   );
