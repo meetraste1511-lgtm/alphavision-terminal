@@ -529,9 +529,17 @@ function App() {
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
           <button className="profile-trigger" onClick={() => setShowProfile(true)} style={{ marginLeft: '8px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}>
-            <div style={{ width: '36px', height: '36px', background: 'var(--accent-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', border: '2px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{session?.user?.email?.charAt(0).toUpperCase()}</span>
-            </div>
+            {session?.user?.user_metadata?.avatar_url ? (
+              <img 
+                src={session.user.user_metadata.avatar_url} 
+                alt="Profile" 
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', objectFit: 'cover' }} 
+              />
+            ) : (
+              <div style={{ width: '36px', height: '36px', background: 'var(--accent-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', border: '2px solid white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{session?.user?.email?.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
           </button>
         </div>
       </header>
