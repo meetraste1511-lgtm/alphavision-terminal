@@ -861,6 +861,11 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
         />
       )}
+      <div className="terminal-footer-meta">
+        <span>V3.1.0-INSTITUTIONAL</span>
+        <Activity size={10} />
+        <span>STABLE</span>
+      </div>
       <Disclaimer />
     </div>
   );
