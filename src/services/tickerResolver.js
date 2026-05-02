@@ -24,6 +24,13 @@ const TICKER_MAP = {
   'STATE BANK': 'SBIN',
   'ICICI': 'ICICIBANK',
   'ICICIBANK': 'ICICIBANK',
+  'SUZLON': 'SUZLON',
+  'ZOMATO': 'ZOMATO',
+  'PAYTM': 'PAYTM',
+  'JIOFIN': 'JIOFIN',
+  'YESBANK': 'YESBANK',
+  'IRFC': 'IRFC',
+  'RVNL': 'RVNL',
   
   // Commodities
   'GOLD': 'GOLD',
