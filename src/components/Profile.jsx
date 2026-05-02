@@ -66,7 +66,7 @@ export default function Profile({ session, onClose }) {
               <Calendar size={16} color="var(--accent-color)" />
               {profile?.subscription_expiry_date 
                 ? new Date(profile.subscription_expiry_date).toLocaleDateString() 
-                : 'Permanent Access'}
+                : 'Account Syncing...'}
             </div>
           </div>
 
