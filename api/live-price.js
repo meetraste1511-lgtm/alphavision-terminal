@@ -28,8 +28,9 @@ export default async function handler(req, res) {
   };
 
   // ── Universal Symbol Resolver ───────────────────────────────────────────
-  const GROWW_MAP = { NIFTY: 'NIFTY', BANKNIFTY: 'BANKNIFTY', FINNIFTY: 'FINNIFTY' };
-  
+  let livePrice = null;
+  let liveStats = {};
+
   // 1. Check Groww for Indian Indices
   if (GROWW_MAP[upper]) {
     try {
@@ -39,16 +40,15 @@ export default async function handler(req, res) {
         const rawVal = d.value ?? d.close;
         const val = parseFloat(rawVal);
         if (!isNaN(val) && val > 0) {
-          const stats = {
-            price: val.toFixed(2),
+          livePrice = val.toFixed(2);
+          liveStats = {
+            price: livePrice,
             open: parseFloat(d.open ?? rawVal).toFixed(2),
             high: parseFloat(d.high ?? rawVal).toFixed(2),
             low: parseFloat(d.low ?? rawVal).toFixed(2),
             source: 'Groww (Real-time)'
           };
-          if (!ohlc) return sendJson({ symbol: upper, ...stats });
-          livePrice = stats.price;
-          liveStats = stats;
+          if (!ohlc) return sendJson({ symbol: upper, ...liveStats });
         }
       }
     } catch (e) {}
@@ -118,6 +118,20 @@ export default async function handler(req, res) {
       }
     }
   } catch (e) {}
+
+  // 4. Twelve Data Final Fallback (Heavy Duty)
+  const TD_KEY = process.env.VITE_TWELVEDATA_API_KEY || process.env.TWELVEDATA_API_KEY;
+  if (TD_KEY) {
+    try {
+      const tdEx = upperEx || (upper.length > 3 ? 'NSE' : '');
+      const url = `https://api.twelvedata.com/price?symbol=${upper}&exchange=${tdEx}&apikey=${TD_KEY}`;
+      const r = await fetch(url);
+      if (r.ok) {
+        const d = await r.json();
+        if (d.price) return sendJson({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Tier-1 Backup' });
+      }
+    } catch (e) {}
+  }
 
   return res.status(404).json({ error: `Price data for ${symbol} is currently offline.` });
 }
