@@ -54,7 +54,14 @@ export default async function handler(req, res) {
 
     if (profileErr) {
        console.error('Failed to update Supabase profile:', profileErr);
-       return res.status(200).json({ success: true, warning: 'Payment succeeded but failed to update profile automatically. Admin check required.', error: profileErr });
+    }
+
+    // 🚀 AUTOMATION: Force confirm email in Supabase Auth since they just paid
+    try {
+      await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
+      console.log('User email auto-confirmed via payment.');
+    } catch (authErr) {
+      console.warn('Auto-confirm failed (might be missing admin permissions):', authErr.message);
     }
 
     return res.status(200).json({ success: true, expiry: expiryDate.toISOString() });

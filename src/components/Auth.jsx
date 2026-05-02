@@ -33,6 +33,8 @@ export default function Auth({ onLogin }) {
     }
   };
 
+  const [signupUserId, setSignupUserId] = useState(null);
+
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -45,9 +47,10 @@ export default function Auth({ onLogin }) {
         if (error) throw error;
         setMessage('Password reset link sent! Check your email.');
       } else if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        console.log('SignUp Successful, showing Paywall');
+        console.log('SignUp Successful, User ID:', data?.user?.id);
+        if (data?.user?.id) setSignupUserId(data.user.id);
         setShowPaywall(true);
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password });
@@ -64,8 +67,7 @@ export default function Auth({ onLogin }) {
   };
 
   if (showPaywall) {
-    console.log('Rendering Paywall Component');
-    return <Paywall userEmail={email} isNewRegistration={true} />;
+    return <Paywall userEmail={email} userId={signupUserId} isNewRegistration={true} />;
   }
 
   return (
