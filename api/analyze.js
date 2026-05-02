@@ -34,11 +34,15 @@ export default async function handler(req, res) {
         const invalidated = logs.filter(l => l.status === 'invalidated').map(l => l.ai_analysis).join("\n---\n");
         
         memoryContext = `
-[REINFORCEMENT LEARNING CONTEXT]
-The following analyses were previously APPROVED by the user as high-quality:
+[REINFORCEMENT LEARNING CONTEXT - LOGIC ONLY]
+The following are SAMPLES of your previous work. Use them ONLY to understand the formatting and depth of logic required. 
+IMPORTANT: DO NOT analyze the assets mentioned in these samples. They are HISTORICAL.
+Current Mission: You must analyze ONLY the asset requested in the 'PROMPT' below.
+
+APPROVED LOGICAL PATTERNS:
 ${validated || "No previous validated samples yet."}
 
-The following analyses were REJECTED by the user. Do NOT repeat these patterns or logical errors:
+REJECTED PATTERNS (DO NOT REPEAT):
 ${invalidated || "No previous invalidated samples yet."}
 ---
 `;
