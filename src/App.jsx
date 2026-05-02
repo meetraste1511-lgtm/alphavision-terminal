@@ -391,6 +391,22 @@ function App() {
       };
 
       const parsed = await analyzeWithProvider(aiProvider, apiKeys, config, session?.user?.id);
+      
+      // --- 🛡️ INSTITUTIONAL PRICE GUARDRAIL ---
+      if (inputMode === 'direct' && currentPrice && parsed?.timeframes) {
+        const firstTf = Object.keys(parsed.timeframes)[0];
+        const generatedEntry = parseFloat(String(parsed.timeframes[firstTf]?.entry).replace(/[^0-9.]/g, ''));
+        const actualPrice = parseFloat(currentPrice);
+        
+        // If difference is > 10%, it's a hallucination
+        const diffPct = Math.abs(generatedEntry - actualPrice) / actualPrice;
+        if (diffPct > 0.1) {
+          console.error(`Calibration Failure: AI Entry (${generatedEntry}) vs Live Price (${actualPrice})`);
+          throw new Error("Terminal Calibration Error: The AI analysis drift is too high. Please check the ticker symbol and try again.");
+        }
+      }
+      // ----------------------------------------
+
       setResults(parsed);
       retryCount.current = 0;
 

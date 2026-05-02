@@ -146,12 +146,25 @@ export async function analyzeWithProvider(provider, keys, config, userId) {
   
   // Build final prompt
   let finalPrompt = systemPrompt;
+  
+  // CRITICAL SAFETY CHECK: If no real data is present, do NOT allow hallucination.
+  const hasNoData = !marketDataText || marketDataText.includes('unavailable') || marketDataText.includes('returned no results');
+  
+  if (inputMode === 'direct' && hasNoData) {
+    return JSON.stringify({
+      liveContext: "CRITICAL: Institutional market data feeds are currently offline for this symbol. No analysis possible.",
+      timeframes: {} 
+    });
+  }
+
   if (isImageMode) {
     finalPrompt += `\n\n[USER PROVIDED A CHART IMAGE. ANALYZE THE PRICE ACTION VISUALLY.]`;
   } else {
-    finalPrompt += `\n\n[LIVE MARKET DATA SUPPLIED BY TWELVE DATA API]\n`;
+    finalPrompt += `\n\n[LIVE MARKET DATA SUPPLIED BY INSTITUTIONAL API]\n`;
     if (currentPrice) {
-      finalPrompt += `CRITICAL ANCHOR: The absolute live current price right now is exactly ${currentPrice}. ALL your entries, stop losses, and take profits MUST be positioned realistically around this exact live price level. Do NOT use historical prices or assume the price is different.\n\n`;
+      finalPrompt += `CRITICAL ANCHOR: The absolute live current price right now is exactly ${currentPrice}. 
+      All your generated levels (Entry, SL, TP) MUST be mathematically relative to this price. 
+      If you cannot find this price in the provided OHLC data, you must prioritize the LIVE ANCHOR over the historical data.\n\n`;
     }
     finalPrompt += `${marketDataText}`;
     if (provider === 'gemini') {
