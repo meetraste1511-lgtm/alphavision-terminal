@@ -595,7 +595,7 @@ function App() {
           
           <div className="institutional-badge beast-pulse">
             <Activity size={14} color="#00ff9d" />
-            <span>v4.0.0 BEAST</span>
+            <span>v4.0.2 BEAST</span>
           </div>
 
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>

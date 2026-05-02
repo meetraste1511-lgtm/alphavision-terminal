@@ -146,7 +146,8 @@ export async function analyzeWithProvider(provider, keys, config, userId) {
   // CRITICAL SAFETY CHECK: If no real data is present, do NOT allow hallucination.
   const hasNoData = !marketDataText || marketDataText.includes('unavailable') || marketDataText.includes('returned no results');
   
-  if (inputMode === 'direct' && hasNoData) {
+  const activeInputMode = isImageMode ? 'image' : 'direct';
+  if (activeInputMode === 'direct' && hasNoData) {
     return JSON.stringify({
       liveContext: "CRITICAL: Institutional market data feeds are currently offline for this symbol. No analysis possible.",
       timeframes: {} 
