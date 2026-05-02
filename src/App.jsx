@@ -770,6 +770,7 @@ function App() {
           onClose={() => setShowProfile(false)} 
           theme={theme} 
           onToggleTheme={toggleTheme}
+          onOpenSettings={() => setShowSettings(true)}
         />
       )}
       <Disclaimer />
