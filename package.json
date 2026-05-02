@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^0.2.1",
+    "@google/genai": "^1.51.0",
     "@supabase/supabase-js": "^2.39.3",
     "dotenv": "^16.4.1",
     "lucide-react": "^0.314.0",
