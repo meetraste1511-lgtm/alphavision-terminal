@@ -601,16 +601,22 @@ function App() {
                       {EXCHANGES.map(ex => <option key={ex.value} value={ex.value}>{ex.label}</option>)}
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label>Ticker Symbol</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" style={{ flex: 1 }} value={directAsset} onChange={(e) => setDirectAsset(e.target.value.toUpperCase())} />
-                      <button
-                        className={`sync-btn ${chartSymbol === directAsset ? 'active' : ''}`}
-                        title="Sync Chart to Ticker"
-                        onClick={() => setChartSymbol(directAsset)}
+                  <div className="input-group">
+                    <label><Target size={14} /> TICKER SYMBOL</label>
+                    <div className="symbol-input-wrapper">
+                      <input
+                        type="text"
+                        value={directAsset}
+                        onChange={(e) => setDirectAsset(e.target.value.toUpperCase())}
+                        placeholder="e.g. RELIANCE, BTC, GOLD"
+                        className="institutional-input"
+                      />
+                      <button 
+                        className="sync-btn"
+                        onClick={() => setChartSymbol(resolveTicker(directAsset))}
+                        title="Force Sync Chart"
                       >
-                        <RotateCcw size={14} />
+                        <RotateCcw size={16} />
                       </button>
                     </div>
                   </div>

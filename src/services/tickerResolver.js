@@ -4,30 +4,39 @@
  */
 
 const TICKER_MAP = {
-  // Indian Stocks (NSE Default)
+  // Indian Stocks (NSE Default - High Liquidity)
   'INFOSYS': 'INFY',
+  'INFY': 'INFY',
   'TATA MOTORS': 'TATAMOTORS',
-  'TATA': 'TATAMOTORS',
+  'TATAMOTORS': 'TATAMOTORS',
+  'TATA MOTORS DVR': 'TATAMTRDVR',
+  'TMPV': 'TMPV', // Tata Motors Passenger Vehicles
+  'RELIANCE': 'RELIANCE',
   'RELIANCE INDUSTRIES': 'RELIANCE',
   'ADANI': 'ADANIENT',
   'ADANI ENTERPRISES': 'ADANIENT',
+  'ADANIEN': 'ADANIENT',
   'HDFC': 'HDFCBANK',
+  'HDFCBANK': 'HDFCBANK',
   'KOTAK': 'KOTAKBANK',
-  'BAJAJ': 'BAJFINANCE',
-  'ASIAN PAINTS': 'ASIANPAINT',
-  'TITAN COMPANY': 'TITAN',
+  'KOTAKBANK': 'KOTAKBANK',
+  'SBIN': 'SBIN',
+  'STATE BANK': 'SBIN',
+  'ICICI': 'ICICIBANK',
+  'ICICIBANK': 'ICICIBANK',
   
   // Commodities
-  'CRUDE OIL': 'CRUDEOIL',
+  'GOLD': 'GOLD',
+  'XAUUSD': 'GOLD',
   'SILVER': 'SILVER',
-  'NATURAL GAS': 'NATGAS',
+  'CRUDE': 'CRUDEOIL',
+  'CRUDEOIL': 'CRUDEOIL',
   
-  // Global Indices
-  'NASDAQ': 'NDX',
-  'DOW': 'US30',
-  'DOW JONES': 'US30',
-  'S&P 500': 'SPX',
-  'SP500': 'SPX'
+  // Indices
+  'NIFTY': 'NIFTY',
+  'BANKNIFTY': 'BANKNIFTY',
+  'FINNIFTY': 'FINNIFTY',
+  'SENSEX': 'SENSEX'
 };
 
 /**
