@@ -159,9 +159,6 @@ export async function analyzeWithProvider(provider, keys, config, userId) {
   }
 
   if (isImageMode) {
-    if (provider !== 'gemini') {
-      throw new Error("Vision analysis is currently only supported via Gemini. Please switch to Gemini in Settings.");
-    }
     finalPrompt += `
 [CRITICAL: VISION ANALYSIS MODE]
 The user has provided a screenshot of a technical chart. You must use your vision capabilities to:

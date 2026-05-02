@@ -381,6 +381,14 @@ function App() {
     setResults(null);
 
     try {
+      // --- 🧠 INTELLIGENT VISION ROUTING ---
+      let activeProvider = aiProvider;
+      if (inputMode === 'image' && aiProvider !== 'gemini') {
+        console.log('Auto-routing to Vision Engine (Gemini)...');
+        activeProvider = 'gemini';
+      }
+      // -------------------------------------
+
       const resolved = resolveTicker(directAsset);
       const fullSymbol = exchange ? `${exchange}:${resolved}` : resolved;
       const assetName = inputMode === 'direct' ? fullSymbol : 'the asset shown in this chart';
@@ -403,7 +411,7 @@ function App() {
         isImageMode: inputMode === 'image'
       };
 
-      const parsed = await analyzeWithProvider(aiProvider, apiKeys, config, session?.user?.id);
+      const parsed = await analyzeWithProvider(activeProvider, apiKeys, config, session?.user?.id);
       
       // --- 🛡️ INSTITUTIONAL PRICE GUARDRAIL ---
       if (inputMode === 'direct' && currentPrice && parsed?.timeframes) {
