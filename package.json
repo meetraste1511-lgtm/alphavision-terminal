@@ -1,5 +1,5 @@
 {
-  "name": "alphavision-terminal",
+  "name": "alphavision-terminal-institutional",
   "private": true,
   "version": "3.1.0",
   "type": "module",
@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:local": "concurrently -k \"node api-server.js\" \"vite\"",
     "build": "vite build",
+    "vercel-build": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
