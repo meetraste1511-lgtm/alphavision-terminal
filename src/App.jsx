@@ -351,18 +351,6 @@ function App() {
     if (inputMode === 'image' && !imageBase64) { setError('Upload a chart image first.'); return; }
     if (inputMode === 'direct' && !directAsset.trim()) { setError('Enter a valid ticker/asset name.'); return; }
 
-    if (aiProvider !== 'pollinations' && !apiKeys[aiProvider]) {
-      setShowSettings(true);
-      setError(`Please enter your ${aiProvider.toUpperCase()} API key in settings.`);
-      return;
-    }
-
-    if (inputMode === 'direct' && aiProvider !== 'gemini' && !apiKeys.twelvedata) {
-      setShowSettings(true);
-      setError('Twelve Data API Key is required for live market data when using Groq/OpenRouter.');
-      return;
-    }
-
     setIsAnalyzing(true);
     setError('');
     setResults(null);
@@ -769,17 +757,26 @@ function App() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Settings</h3>
+            <div className="settings-header">
+              <h3><Settings size={20} /> ALPHA SETTINGS</h3>
               <button className="icon-btn" onClick={() => setShowSettings(false)}><X size={20} /></button>
             </div>
+            
+            <div className="institutional-identity" style={{ marginBottom: '16px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+              <ShieldAlert size={14} />
+              <span>Institutional Management: Subscribed users utilize managed server-side keys by default.</span>
+            </div>
+
             <div className="form-group">
               <label>AI Provider</label>
-              <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value)}>
-                <option value="gemini">Gemini</option>
-                <option value="groq">Groq</option>
-                <option value="openrouter">OpenRouter</option>
-                <option value="pollinations">Pollinations</option>
+              <select value={aiProvider} onChange={(e) => {
+                setAiProvider(e.target.value);
+                localStorage.setItem('av_ai_provider', e.target.value);
+              }}>
+                <option value="gemini">Gemini (Institutional)</option>
+                <option value="groq">Groq (Ultra-Fast)</option>
+                <option value="openrouter">OpenRouter (DeepSeek R1)</option>
+                <option value="pollinations">Pollinations (Keyless)</option>
               </select>
             </div>
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
