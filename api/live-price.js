@@ -83,7 +83,8 @@ export default async function handler(req, res) {
     SENSEX: '^BSESN', NIFTY: '^NSEI', BANKNIFTY: '^NSEBANK',
     SPX: '^GSPC', SP500: '^GSPC', NDX: '^NDX', NASDAQ: '^IXIC', DJI: '^DJI',
     GOLD: 'GC=F', XAUUSD: 'GC=F', SILVER: 'SI=F', CRUDEOIL: 'CL=F', DXY: 'DX-Y.NYB',
-    VIX: '^VIX', BTC: 'BTC-USD', ETH: 'ETH-USD'
+    VIX: '^VIX', BTC: 'BTC-USD', ETH: 'ETH-USD',
+    SUZLON: 'SUZLON.NS', ZOMATO: 'ZOMATO.NS', PAYTM: 'PAYTM.NS', JIOFIN: 'JIOFIN.NS'
   };
 
   let yahooSym = YAHOO_MAP[upper] ?? upper;
