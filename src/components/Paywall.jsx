@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, CheckCircle, CheckCircle, RefreshCcw, Zap } from 'lucide-react';
+import { Lock, CheckCircle, RefreshCcw, Zap } from 'lucide-react';
 import './Auth.css';
 
 export default function Paywall({ userEmail, userId, isNewRegistration }) {
@@ -256,3 +256,4 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
     </div>
   );
 }
+
