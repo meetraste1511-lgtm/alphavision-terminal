@@ -38,10 +38,30 @@ export default async function handler(req, res) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Calculate new expiry (30 days for 1199, 90 days for 3000)
+    // Fetch current profile to check for existing subscription
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('subscription_expiry_date')
+      .eq('id', userId)
+      .single();
+
+    const currentExpiry = existingProfile?.subscription_expiry_date ? new Date(existingProfile.subscription_expiry_date) : null;
+    const now = new Date();
+
+    // Calculate new expiry (Cumulative: Add to existing if valid, otherwise add to Now)
     const daysToAdd = planAmount >= 3000 ? 90 : 30;
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + daysToAdd);
+    let expiryDate = new Date();
+
+    if (currentExpiry && currentExpiry > now) {
+      // Extension logic: Add to existing expiry
+      expiryDate = new Date(currentExpiry);
+      expiryDate.setDate(expiryDate.getDate() + daysToAdd);
+      console.log(`Extending existing subscription. New expiry: ${expiryDate.toISOString()}`);
+    } else {
+      // New/Expired logic: Add to Now
+      expiryDate.setDate(now.getDate() + daysToAdd);
+      console.log(`New/Renewed subscription. Expiry: ${expiryDate.toISOString()}`);
+    }
 
     // Update user profile in Supabase (UPSERT to handle new users)
     const { data: profileData, error: profileErr } = await supabase
