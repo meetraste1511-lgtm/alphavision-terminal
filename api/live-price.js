@@ -27,46 +27,42 @@ export default async function handler(req, res) {
     return res.json(data);
   };
 
-  // ── Indian Indices via Groww (Real-time price) ───────────────────────────
+  // ── Universal Symbol Resolver ───────────────────────────────────────────
   const GROWW_MAP = { NIFTY: 'NIFTY', BANKNIFTY: 'BANKNIFTY', FINNIFTY: 'FINNIFTY' };
-  let livePrice = null;
-  let liveStats = {};
-
+  
+  // 1. Check Groww for Indian Indices
   if (GROWW_MAP[upper]) {
     try {
-      const r = await fetch(
-        `https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/NSE/segment/CASH/${GROWW_MAP[upper]}/latest`
-      );
+      const r = await fetch(`https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/NSE/segment/CASH/${GROWW_MAP[upper]}/latest`);
       if (r.ok) {
         const d = await r.json();
         const rawVal = d.value ?? d.close;
         const val = parseFloat(rawVal);
         if (!isNaN(val) && val > 0) {
-          livePrice = val.toFixed(2);
-          liveStats = {
-            open:  parseFloat(d.open  ?? rawVal).toFixed(2),
-            high:  parseFloat(d.high  ?? rawVal).toFixed(2),
-            low:   parseFloat(d.low   ?? rawVal).toFixed(2),
-            close: parseFloat(d.close ?? rawVal).toFixed(2)
+          const stats = {
+            price: val.toFixed(2),
+            open: parseFloat(d.open ?? rawVal).toFixed(2),
+            high: parseFloat(d.high ?? rawVal).toFixed(2),
+            low: parseFloat(d.low ?? rawVal).toFixed(2),
+            source: 'Groww (Real-time)'
           };
-          // If ONLY price is needed (not OHLC), return now
-          if (!ohlc) return sendJson({ symbol: upper, price: livePrice, ...liveStats, source: 'Groww' });
+          if (!ohlc) return sendJson({ symbol: upper, ...stats });
+          livePrice = stats.price;
+          liveStats = stats;
         }
       }
-    } catch (e) { console.error('Groww Error:', e.message); }
+    } catch (e) {}
   }
 
-  // ── Crypto via Binance ────────────────────────────────────────────────────
-  const cryptoSymbols = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'DOT', 'PEPE', 'SHIB'];
-  const isCrypto = cryptoSymbols.some(s => upper.includes(s)) || 
-                   upper.endsWith('USDT') || upper.endsWith('BTC') || 
-                   upperEx === 'BINANCE';
+  // 2. Check Binance for Crypto (Universal)
+  const isCrypto = upper.endsWith('USDT') || upper.endsWith('USD') || 
+                   upperEx === 'BINANCE' || 
+                   ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'BNB', 'DOGE', 'AVAX', 'DOT', 'MATIC', 'PEPE', 'SHIB', 'TRX', 'LINK', 'UNI', 'LTC'].some(s => upper.startsWith(s));
 
   if (isCrypto) {
-    let binSym = upper;
-    if (!upper.includes('USDT') && !upper.includes('BTC') && !upper.includes('ETH')) {
-      binSym = upper + 'USDT';
-    }
+    let binSym = upper.replace('USD', 'USDT');
+    if (!binSym.endsWith('USDT')) binSym += 'USDT';
+    
     try {
       const binInterval = { '1m':'1m', '5m':'5m', '15m':'15m', '1H':'1h', '4H':'4h', 'Daily':'1d' }[tf] || '1h';
       const endpoint = ohlc ? `klines?symbol=${binSym}&interval=${binInterval}&limit=30` : `ticker/price?symbol=${binSym}`;
@@ -75,56 +71,53 @@ export default async function handler(req, res) {
         const d = await r.json();
         if (ohlc) {
           const rows = d.reverse().map(k => `${new Date(k[0]).toISOString()} | O:${parseFloat(k[1]).toFixed(2)} H:${parseFloat(k[2]).toFixed(2)} L:${parseFloat(k[3]).toFixed(2)} C:${parseFloat(k[4]).toFixed(2)}`);
-          return sendJson({ symbol: upper, price: parseFloat(d[0][4]).toFixed(2), data: rows.join('\n'), source: 'Binance' });
+          return sendJson({ symbol: upper, price: parseFloat(d[0][4]).toFixed(2), data: rows.join('\n'), source: 'Binance (Live)' });
         }
-        return sendJson({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Binance' });
+        return sendJson({ symbol: upper, price: parseFloat(d.price).toFixed(2), source: 'Binance (Live)' });
       }
-    } catch (e) { console.error('Binance Error:', e.message); }
+    } catch (e) {}
   }
 
-  // ── Everything else via Yahoo Finance (Global Markets) ──────────────────
+  // 3. Yahoo Finance Global (The Universal Fallback)
   const YAHOO_MAP = {
     SENSEX: '^BSESN', NIFTY: '^NSEI', BANKNIFTY: '^NSEBANK',
     SPX: '^GSPC', SP500: '^GSPC', NDX: '^NDX', NASDAQ: '^IXIC', DJI: '^DJI',
-    GOLD: 'GC=F', XAUUSD: 'GC=F', SILVER: 'SI=F', DXY: 'DX-Y.NYB'
+    GOLD: 'GC=F', XAUUSD: 'GC=F', SILVER: 'SI=F', CRUDEOIL: 'CL=F', DXY: 'DX-Y.NYB',
+    VIX: '^VIX', BTC: 'BTC-USD', ETH: 'ETH-USD'
   };
-  
-  const yahooSym = YAHOO_MAP[upper] ?? upper;
+
+  let yahooSym = YAHOO_MAP[upper] ?? upper;
+  if (!yahooSym.includes('^') && !yahooSym.includes('=') && !yahooSym.includes('-')) {
+    if (upperEx === 'NSE') yahooSym += '.NS';
+    else if (upperEx === 'BSE') yahooSym += '.BO';
+    else if (!isCrypto && upper.length > 3 && ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK'].some(s => upper.includes(s))) yahooSym += '.NS';
+  }
+
   try {
     const ytf = { '1m':'1m', '5m':'5m', '15m':'15m', '1H':'1h', '4H':'1h', 'Daily':'1d' }[tf] || '1h';
-    const r = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=${ytf}&range=5d`,
-      { headers: { 'User-Agent': 'Mozilla/5.0' } }
-    );
+    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=${ytf}&range=5d`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     if (r.ok) {
       const d = await r.json();
-      const meta = d.chart?.result?.[0]?.meta;
-      const yahooResult = d.chart?.result?.[0];
-      const yahooPrice = meta?.regularMarketPrice ?? meta?.previousClose;
-      const finalPrice = livePrice || parseFloat(yahooPrice).toFixed(2);
-      
-      if (ohlc && yahooResult) {
-        const timestamps = yahooResult.timestamp ?? [];
-        const quote = yahooResult.indicators?.quote?.[0] ?? {};
-        const rows = [];
-        for (let i = timestamps.length - 1; i >= Math.max(0, timestamps.length - 30); i--) {
-          if (quote.close?.[i]) {
-            rows.push(`${new Date(timestamps[i] * 1000).toISOString()} | O:${parseFloat(quote.open[i]).toFixed(2)} H:${parseFloat(quote.high[i]).toFixed(2)} L:${parseFloat(quote.low[i]).toFixed(2)} C:${parseFloat(quote.close[i]).toFixed(2)}`);
+      const resData = d.chart?.result?.[0];
+      if (resData) {
+        const meta = resData.meta;
+        const yahooPrice = meta?.regularMarketPrice ?? meta?.previousClose;
+        const finalPrice = livePrice || (yahooPrice ? parseFloat(yahooPrice).toFixed(2) : null);
+        if (ohlc) {
+          const timestamps = resData.timestamp ?? [];
+          const quote = resData.indicators?.quote?.[0] ?? {};
+          const rows = [];
+          for (let i = timestamps.length - 1; i >= Math.max(0, timestamps.length - 30); i--) {
+            if (quote.close?.[i]) rows.push(`${new Date(timestamps[i] * 1000).toISOString()} | O:${parseFloat(quote.open[i]).toFixed(2)} H:${parseFloat(quote.high[i]).toFixed(2)} L:${parseFloat(quote.low[i]).toFixed(2)} C:${parseFloat(quote.close[i]).toFixed(2)}`);
           }
+          let finalData = rows.join('\n');
+          if (livePrice) finalData = `⚡ REAL-TIME ANCHOR: ${livePrice} | O:${liveStats.open} H:${liveStats.high} L:${liveStats.low}\n` + finalData;
+          return sendJson({ symbol: upper, price: finalPrice, data: finalData, source: livePrice ? 'Institutional Bridge' : 'Global Feed' });
         }
-        
-        // Inject real-time Groww anchor if available
-        let finalData = rows.join('\n');
-        if (livePrice) {
-          finalData = `⚡ REAL-TIME ANCHOR (Groww): ${livePrice} | O:${liveStats.open} H:${liveStats.high} L:${liveStats.low}\n` + finalData;
-        }
-
-        return sendJson({ symbol: upper, price: finalPrice, data: finalData, source: livePrice ? 'Groww+Yahoo' : 'Yahoo' });
+        if (finalPrice) return sendJson({ symbol: upper, price: finalPrice, source: livePrice ? 'Institutional Bridge' : 'Global Feed' });
       }
-
-      if (finalPrice) return sendJson({ symbol: upper, price: finalPrice, source: livePrice ? 'Groww' : 'Yahoo' });
     }
-  } catch (e) { console.error('Yahoo Error:', e.message); }
+  } catch (e) {}
 
-  return res.status(404).json({ error: `Price unavailable for ${symbol}` });
+  return res.status(404).json({ error: `Price data for ${symbol} is currently offline.` });
 }

@@ -239,27 +239,36 @@ function App() {
     let cancelled = false;
     let intervalId = null;
 
-    // ── Binance WebSocket Stream (Real-time & Zero Rate Limit) ──────────────
+    // ── Universal WebSocket Stream (Binance & Crypto Auto-Detection) ──────────
     if (wsRef.current) {
       wsRef.current.close();
       setWsPrice(null);
     }
 
-    const cryptoSymbols = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'DOT', 'PEPE', 'SHIB'];
-    const isCrypto = cryptoSymbols.some(s => directAsset.toUpperCase().includes(s)) || directAsset.toUpperCase().endsWith('USDT') || exchange === 'BINANCE';
+    // Auto-detect crypto by common patterns
+    const upSymbol = directAsset.toUpperCase();
+    const isCrypto = upSymbol.endsWith('USDT') || 
+                     upSymbol.endsWith('USD') || 
+                     exchange === 'BINANCE' || 
+                     ['BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA'].some(s => upSymbol.startsWith(s));
 
     if (isCrypto) {
-      const cleanSymbol = directAsset.toUpperCase().replace('USDT', '').toLowerCase() + 'usdt';
-      const wsUrl = `wss://stream.binance.com:9443/ws/${cleanSymbol}@ticker`;
+      // Normalize to binance format: e.g., 'XRPUSD' -> 'xrpusdt', 'BTC' -> 'btcusdt'
+      let clean = upSymbol.replace(':', '').replace('/', '');
+      if (clean.endsWith('USD')) clean = clean.replace('USD', 'USDT');
+      if (!clean.endsWith('USDT')) clean = clean + 'USDT';
+      
+      const wsUrl = `wss://stream.binance.com:9443/ws/${clean.toLowerCase()}@ticker`;
 
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.c && !cancelled) {
-          const p = parseFloat(data.c).toFixed(2);
-          setWsPrice(p);
-          setLivePrice(p);
-          setLivePriceSource('Binance Stream');
+          const p = parseFloat(data.c);
+          const formatted = p > 1 ? p.toFixed(2) : p.toFixed(4);
+          setWsPrice(formatted);
+          setLivePrice(formatted);
+          setLivePriceSource('Institutional Stream');
         }
       };
       wsRef.current = ws;
