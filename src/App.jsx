@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'; // AV-LABS Core Active
-import { UploadCloud, X, Activity, Target, ShieldAlert, ShieldCheck, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers, LogOut } from 'lucide-react';
+import { UploadCloud, X, Activity, Target, ShieldAlert, TrendingUp, Settings, Sun, Moon, AlertOctagon, Clock, DollarSign, BarChart3, CheckCircle, XCircle, RotateCcw, Zap, BookOpen, Globe, Layers, LogOut } from 'lucide-react';
 import { getMarketContext } from './services/marketData';
 import { analyzeWithProvider } from './services/aiProviders';
 import { supabase } from './supabaseClient';
@@ -593,7 +593,7 @@ function App() {
           </button>
           
           <div className="institutional-badge">
-            <ShieldCheck size={14} color="#00ff9d" />
+            <Activity size={14} color="#00ff9d" />
             <span>v3.1.0</span>
           </div>
 
