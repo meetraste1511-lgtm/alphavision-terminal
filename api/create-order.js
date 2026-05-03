@@ -25,8 +25,13 @@ export default async function handler(req, res) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret) {
-      console.error('API Error: Missing Razorpay credentials in environment');
-      return res.status(500).json({ error: 'Configuration Error', details: 'Razorpay Key ID or Secret is missing in server environment variables.' });
+      console.warn('API Warning: Missing Razorpay credentials. Falling back to Mock Order for Pitch Mode.');
+      return res.status(200).json({ 
+        id: 'order_pitch_mode_' + Date.now(),
+        amount: amount * 100,
+        currency: 'INR',
+        isMock: true
+      });
     }
 
     const orderPayload = JSON.stringify({
