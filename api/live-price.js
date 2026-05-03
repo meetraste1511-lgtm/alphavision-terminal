@@ -67,9 +67,19 @@ export default async function handler(req, res) {
   fetchers.push((async () => {
     const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?interval=1m&range=1d`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     const d = await r.json();
-    const p = d.chart?.result?.[0]?.meta?.regularMarketPrice;
+    const result = d.chart?.result?.[0];
+    const p = result?.meta?.regularMarketPrice;
     if (!p) throw 'Invalid';
-    return { price: parseFloat(p).toFixed(2), source: '🌍 GLOBAL FEED' };
+    
+    let ohlcData = null;
+    if (ohlc === 'true') {
+      const ts = result.timestamp || [];
+      const quote = result.indicators?.quote?.[0] || {};
+      ohlcData = `Historical OHLC for ${upper} | Last Price: ${p}\n---\n` + 
+                 ts.slice(-10).map((t, i) => `${new Date(t * 1000).toISOString()} | O:${quote.open?.[i]?.toFixed(2)} H:${quote.high?.[i]?.toFixed(2)} L:${quote.low?.[i]?.toFixed(2)} C:${quote.close?.[i]?.toFixed(2)}`).join('\n');
+    }
+
+    return { price: parseFloat(p).toFixed(2), source: '🌍 GLOBAL FEED', ohlcData };
   })());
 
   try {
@@ -77,10 +87,15 @@ export default async function handler(req, res) {
     const successful = results.find(r => r.status === 'fulfilled')?.value;
     
     if (successful) {
-      PRICE_CACHE[cacheKey] = { timestamp: Date.now(), data: successful };
-      return res.json(successful);
+      const responseBody = {
+        price: successful.price,
+        source: successful.source,
+        data: successful.ohlcData || `Current Price: ${successful.price} | Source: ${successful.source}`
+      };
+      PRICE_CACHE[cacheKey] = { timestamp: Date.now(), data: responseBody };
+      return res.json(responseBody);
     }
   } catch (e) {}
 
-  return res.status(404).json({ error: 'Liquidity search failed.' });
+  return res.status(500).json({ error: 'Liquidity search failed.' });
 }
