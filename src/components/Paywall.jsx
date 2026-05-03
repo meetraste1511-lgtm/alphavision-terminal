@@ -51,7 +51,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       }
 
       const options = {
-        key: 'rzp_live_Sk9c7D3csrStLq', 
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Sk9c7D3csrStLq',
         amount: order.amount,
         currency: order.currency,
         name: "AlphaVision Terminal",
