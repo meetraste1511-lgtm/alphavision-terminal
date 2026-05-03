@@ -11,8 +11,8 @@ Your mission: Perform a FRACTAL analysis of ${assetName}.
 
 TIME-FRAME DIFFERENTIATION PROTOCOL (CRITICAL):
 1. 1m/5m (Tactical): Focused on immediate liquidity sweeps and micro-FVGs. Stops: ~100-200 pts (BTC).
-2. 15m/1h (Inter-day): Focused on session highs/lows and H1 Order Blocks. Stops: ~300-500 pts (BTC).
-3. 4h/Daily (Institutional): Focused on Weekly/Monthly structural targets. Stops: MUST be at least 500-1500 pts (BTC) away from entry. TP MUST target major liquidity pools.
+2. 15m/1H (Inter-day): Focused on session highs/lows and H1 Order Blocks. Stops: ~300-500 pts (BTC).
+3. 4H/Daily (Institutional): Focused on Weekly/Monthly structural targets. Stops: MUST be at least 500-1500 pts (BTC) away from entry. TP MUST target major liquidity pools.
 
 MANDATORY RULES:
 - NO DUPLICATION: You are FORBIDDEN from using the same levels for different timeframes. Each MUST be unique.
@@ -22,15 +22,15 @@ MANDATORY RULES:
 JSON OUTPUT FORMAT (STRICT):
 Return ONLY a valid JSON object. Generate UNIQUE data for ALL timeframes.
 {
-  "liveContext": "AV-QS Fractal Scan: Multi-layer structural targets identified for ${assetName}.",
-  "reasoning": "Fractal confluence summary.",
+  "liveContext": "Generate a dynamic 1-sentence summary of the immediate macro condition for ${assetName}.",
+  "reasoning": "Provide a 1-sentence explanation of why the timeframes align (or diverge).",
   "timeframes": {
-    "1m": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:4+", "analysis": "1m Tactical SMC scan." },
-    "5m": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:4+", "analysis": "5m Intraday structural scan." },
-    "15m": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:5+", "analysis": "15m Intermediate trend scan." },
-    "1h": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:5+", "analysis": "1h Macro session scan." },
-    "4h": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:6+", "analysis": "4h Institutional structure scan." },
-    "Daily": { "bias": "LONG/SHORT", "confidence": 85, "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:8+", "analysis": "Daily High-fidelity macro scan." }
+    "1m": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR 1m)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:4+", "analysis": "Generate a unique, 2-sentence technical justification specific to the 1m price action." },
+    "5m": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR 5m)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:4+", "analysis": "Generate a unique, 2-sentence technical justification specific to the 5m price action." },
+    "15m": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR 15m)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:5+", "analysis": "Generate a unique, 2-sentence technical justification specific to the 15m price action." },
+    "1H": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR 1H)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:5+", "analysis": "Generate a unique, 2-sentence technical justification specific to the 1H price action." },
+    "4H": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR 4H)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:6+", "analysis": "Generate a unique, 2-sentence technical justification specific to the 4H price action." },
+    "Daily": { "bias": "LONG/SHORT/NEUTRAL", "confidence": "Number between 40-95 (UNIQUE FOR Daily)", "entry": number, "stopLoss": number, "takeProfit": number, "riskReward": "1:8+", "analysis": "Generate a unique, 2-sentence technical justification specific to the Daily macro view." }
   }
 }
 `;
@@ -140,10 +140,18 @@ export async function analyzeWithProvider(provider, keys, config, userId) {
   
   const activeInputMode = isImageMode ? 'image' : 'direct';
   if (activeInputMode === 'direct' && hasNoData) {
-    return JSON.stringify({
+    return {
       liveContext: "CRITICAL: Institutional market data feeds are currently offline for this symbol. No analysis possible.",
-      timeframes: {} 
-    });
+      reasoning: "Data Feed Disconnected",
+      timeframes: {
+        "1m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." },
+        "5m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." },
+        "15m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." },
+        "1H": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." },
+        "4H": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." },
+        "Daily": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "Data unavailable." }
+      }
+    };
   }
 
   if (isImageMode) {
@@ -220,6 +228,10 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
       reasoning: "Analysis generated via institutional fallback due to primary engine congestion.",
       timeframes: {
         "1m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." },
+        "5m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." },
+        "15m": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." },
+        "1H": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." },
+        "4H": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." },
         "Daily": { "bias": "NEUTRAL", "confidence": 50, "entry": 0, "stopLoss": 0, "takeProfit": 0, "riskReward": "1:2", "analysis": "System stabilized. Waiting for structural confirmation." }
       }
     };

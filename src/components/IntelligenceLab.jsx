@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Search, BookOpen, Layers, Globe, FileText, ArrowRight, CheckCircle, Zap, X } from 'lucide-react';
 import './IntelligenceLab.css';
 
-// Institutional Dossier Renderer (Internal)
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// Institutional Dossier Renderer
 const ResearchRenderer = ({ content }) => (
-  <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.6' }}>
-    {content}
+  <div className="premium-markdown-container">
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      {content}
+    </ReactMarkdown>
   </div>
 );
 
@@ -181,7 +186,7 @@ const IntelligenceLab = ({ onClose }) => {
                   Horizon: {horizon} | Intensity: {requirement} | Handshake: Verified
                 </div>
               </div>
-              <div className="markdown-body">
+              <div className="report-content-wrapper">
                 <ResearchRenderer content={report} />
               </div>
             </div>

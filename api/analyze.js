@@ -1,9 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
-);
+let supabase = null;
+try {
+  if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY) {
+    supabase = createClient(
+      process.env.VITE_SUPABASE_URL,
+      process.env.VITE_SUPABASE_ANON_KEY
+    );
+  }
+} catch (e) {
+  console.warn("Supabase initialization skipped in analyze.js:", e.message);
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,7 +28,7 @@ export default async function handler(req, res) {
   try {
     // 🧠 FETCH LEARNING DATA (MEMORY)
     let memoryContext = "";
-    if (userId) {
+    if (userId && supabase) {
       const { data: logs } = await supabase
         .from('ai_training_logs')
         .select('ai_analysis, status')

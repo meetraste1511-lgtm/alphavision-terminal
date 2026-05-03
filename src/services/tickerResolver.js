@@ -58,9 +58,9 @@ export function resolveTicker(input) {
   // 1. Direct Map Check
   if (TICKER_MAP[upper]) return TICKER_MAP[upper];
   
-  // 2. Partial Match Check (e.g., 'INFOSYS LTD' -> 'INFY')
+  // 2. Partial Match Check (e.g., 'BANKNIF' -> 'BANKNIFTY')
   for (const [key, value] of Object.entries(TICKER_MAP)) {
-    if (upper.includes(key)) return value;
+    if (key.startsWith(upper) || value.startsWith(upper)) return value;
   }
   
   // 3. Default (Return as is)

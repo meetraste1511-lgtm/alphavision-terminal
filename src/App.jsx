@@ -500,14 +500,57 @@ function App() {
     return up;
   };
 
-  const activeResult = results?.timeframes?.[activeTimeframe];
+  const activeResult = results?.timeframes?.[activeTimeframe] 
+    || results?.timeframes?.[activeTimeframe.toLowerCase()]
+    || results?.timeframes?.[activeTimeframe.toUpperCase()]
+    || results?.timeframes?.['1h'] // Fallback if 1H was generated as 1h
+    || results?.timeframes?.['4h']; // Fallback if 4H was generated as 4h
 
   const cap = parseFloat(capital) || 0;
   const riskPct = parseFloat(riskPercent) || 1;
   const riskAmount = cap * (riskPct / 100);
-  const entry = activeResult ? parseFloat(String(activeResult.entry).replace(/[^0-9.]/g, '')) : 0;
-  const sl = activeResult ? parseFloat(String(activeResult.stopLoss).replace(/[^0-9.]/g, '')) : 0;
-  const tp = activeResult ? parseFloat(String(activeResult.takeProfit).replace(/[^0-9.]/g, '')) : 0;
+  let entry = activeResult ? parseFloat(String(activeResult.entry).replace(/[^0-9.]/g, '')) : 0;
+  let sl = activeResult ? parseFloat(String(activeResult.stopLoss).replace(/[^0-9.]/g, '')) : 0;
+  let tp = activeResult ? parseFloat(String(activeResult.takeProfit).replace(/[^0-9.]/g, '')) : 0;
+
+  // 🛡️ INSTITUTIONAL TIMEFRAME RANGE ENFORCER
+  if (entry > 0) {
+    const isLong = sl < entry;
+    let actualSlDistance = Math.abs(entry - sl);
+    let slPercentage = (actualSlDistance / entry) * 100;
+
+    // Define strict boundaries for how wide a stop loss should be per timeframe (%)
+    const tfBounds = {
+      '1m': { min: 0.1, max: 0.25 },
+      '5m': { min: 0.2, max: 0.5 },
+      '15m': { min: 0.4, max: 0.8 },
+      '1H': { min: 0.8, max: 1.5 },
+      '4H': { min: 1.5, max: 4.0 },
+      'Daily': { min: 4.0, max: 10.0 }
+    };
+
+    // Case-insensitive lookup for timeframe bounds
+    const boundsKey = Object.keys(tfBounds).find(k => k.toLowerCase() === activeTimeframe.toLowerCase()) || '1H';
+    const bounds = tfBounds[boundsKey];
+
+    // Force SL distance into the logical bounds for this timeframe
+    if (slPercentage < bounds.min) slPercentage = bounds.min;
+    if (slPercentage > bounds.max) slPercentage = bounds.max;
+
+    actualSlDistance = entry * (slPercentage / 100);
+    sl = isLong ? (entry - actualSlDistance) : (entry + actualSlDistance);
+
+    // 🛡️ GREEDY RISK-REWARD ENFORCER: Ensure RR is ALWAYS > 1:2.5
+    const actualTpDistance = Math.abs(tp - entry);
+    if (actualSlDistance > 0 && (actualTpDistance / actualSlDistance) < 2.5) {
+      if (isLong) {
+        tp = entry + (actualSlDistance * 2.5); // Force 1:2.5 RR
+      } else {
+        tp = entry - (actualSlDistance * 2.5); // Force 1:2.5 RR
+      }
+    }
+  }
+
   const slDistance = entry && sl ? Math.abs(entry - sl) : 0;
   const tpDistance = entry && tp ? Math.abs(tp - entry) : 0;
   const calculatedRR = slDistance > 0 && tpDistance > 0 ? (tpDistance / slDistance).toFixed(2) : 0;
@@ -607,7 +650,9 @@ function App() {
 
 
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
-          <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
+          {session?.user?.email === ADMIN_EMAIL && (
+            <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
+          )}
           <button className="profile-trigger" onClick={() => setShowProfile(true)} style={{ marginLeft: '8px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}>
             {session?.user?.user_metadata?.avatar_url ? (
               <img 
@@ -686,7 +731,7 @@ function App() {
               )}
               <button className="btn-primary" onClick={analyzeChart} disabled={isAnalyzing}>
                 <Zap size={14} style={{ marginRight: '6px' }} />
-                {isAnalyzing ? 'Scanning...' : 'Generate Research Report'}
+                {isAnalyzing ? 'Scanning...' : 'Run Neural Scan'}
               </button>
               {error && <div className="error-msg" style={{ marginTop: '12px' }}>{error}</div>}
             </div>
@@ -713,16 +758,16 @@ function App() {
                     <div className="confidence-container glass-panel" style={{ padding: '12px' }}>
                       <div className="confidence-header">
                         <span className="beast-text">Neural Confidence ({activeTimeframe})</span>
-                        <span className="beast-glitch" style={{ color: activeResult.confidence >= 75 ? 'var(--neon-green)' : activeResult.confidence >= 50 ? 'var(--warning)' : 'var(--danger)' }}>{activeResult.confidence}%</span>
+                        <span className="beast-glitch" style={{ color: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--accent-color)' : 'var(--text-secondary)' }}>{activeResult.confidence}%</span>
                       </div>
                       <div className="confidence-track">
-                        <div className="confidence-fill beast-glow" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--neon-green)' : activeResult.confidence >= 50 ? 'var(--warning)' : 'var(--danger)' }}></div>
+                        <div className="confidence-fill beast-glow" style={{ width: `${activeResult.confidence}%`, background: activeResult.confidence >= 75 ? 'var(--success-color)' : activeResult.confidence >= 50 ? 'var(--accent-color)' : 'var(--text-secondary)' }}></div>
                       </div>
                     </div>
                     <div className="levels-grid" style={{ marginTop: '16px' }}>
-                      <div className="level-card entry"><span className="level-label">Entry</span><span className="level-value">{activeResult.entry}</span></div>
-                      <div className="level-card tp"><span className="level-label">T.Profit</span><span className="level-value">{activeResult.takeProfit}</span></div>
-                      <div className="level-card sl"><span className="level-label">S.Loss</span><span className="level-value">{activeResult.stopLoss}</span></div>
+                      <div className="level-card entry"><span className="level-label">Entry</span><span className="level-value">{entry > 0 ? entry.toFixed(2) : '—'}</span></div>
+                      <div className="level-card tp"><span className="level-label">T.Profit</span><span className="level-value">{tp > 0 ? tp.toFixed(2) : '—'}</span></div>
+                      <div className="level-card sl"><span className="level-label">S.Loss</span><span className="level-value">{sl > 0 ? sl.toFixed(2) : '—'}</span></div>
                       <div className={`level-card rr ${isInstitutionalGrade ? 'institutional' : ''}`}>
                         <span className="level-label">{isInstitutionalGrade ? 'INSTITUTIONAL R:R' : 'R:R Ratio'}</span>
                         <span className="level-value">{displayRR}</span>
@@ -764,7 +809,7 @@ function App() {
           {inputMode === 'direct' ? (
             <div className="tv-widget-container">
               <iframe
-                src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(chartSymbol === 'NIFTY' ? 'NSE:NIFTY' : chartSymbol)}&interval=60&theme=${syncChartTheme ? (theme === 'dark' ? 'dark' : 'light') : 'dark'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
+                src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'RELIANCE', 'INFY', 'TCS', 'HDFCBANK', 'ICICIBANK', 'SBIN'].includes(chartSymbol) ? 'NSE:' + chartSymbol : chartSymbol === 'SENSEX' ? 'BSE:SENSEX' : chartSymbol)}&interval=60&theme=${syncChartTheme ? (theme === 'dark' ? 'dark' : 'light') : 'dark'}&style=1&timezone=Asia%2FKolkata&withdateranges=1&hide_side_toolbar=0&allow_symbol_change=1`}
                 width="100%" height="100%" frameBorder="0" allowFullScreen title="Live Chart"
               ></iframe>
             </div>
@@ -784,13 +829,26 @@ function App() {
           )}
 
           {activeResult && (
-            <div className="analysis-overlay">
+            <div className="analysis-overlay animate-fade-in">
               <button className="close-analysis-btn" onClick={() => setResults(null)}>
                 <X size={16} />
               </button>
-              <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>INSTITUTIONAL ANALYSIS REPORT — {activeTimeframe}</h4>
-              <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{activeResult.analysis}</p>
-              {results.liveContext && <p style={{ marginTop: '8px', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--accent-color)' }}>{results.liveContext}</p>}
+              <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', marginBottom: '12px', fontWeight: '800', letterSpacing: '0.05em' }}>
+                NEURAL ANALYSIS — {activeTimeframe}
+              </h4>
+              <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-primary)', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>
+                {activeResult.analysis}
+              </p>
+              {results.reasoning && (
+                <p style={{ fontSize: '0.85rem', lineHeight: '1.5', color: 'var(--text-secondary)', marginBottom: '12px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '2px solid var(--accent-color)' }}>
+                  <strong>Confluence:</strong> {results.reasoning}
+                </p>
+              )}
+              {results.liveContext && (
+                <p style={{ marginTop: '8px', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--warning-color)' }}>
+                  {results.liveContext}
+                </p>
+              )}
             </div>
           )}
         </section>
