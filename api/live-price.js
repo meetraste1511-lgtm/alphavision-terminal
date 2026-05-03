@@ -57,11 +57,17 @@ export default async function handler(req, res) {
     'NIFTY': '^NSEI',
     'BANKNIFTY': '^NSEBANK',
     'FINNIFTY': 'NIFTY_FIN_SERVICE.NS',
+    'MIDCPNIFTY': 'NIFTY_MIDCAP_100.NS',
+    'NIFTYIT': '^CNXIT',
     'SENSEX': '^BSESN',
     'GOLD': 'GC=F',
+    'SILVER': 'SI=F',
+    'CRUDEOIL': 'CL=F',
     'SPX': '^GSPC',
     'NDX': '^NDX',
     'US30': '^DJI',
+    'DAX': '^GDAXI',
+    'FTSE': '^FTSE',
   };
   const ySym = yahooMap[upper] || (upperEx === 'NSE' ? upper + '.NS' : upperEx === 'BSE' ? upper + '.BO' : upper);
   fetchers.push((async () => {
