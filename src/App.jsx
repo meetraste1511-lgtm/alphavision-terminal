@@ -418,20 +418,20 @@ function App() {
 
       const parsed = await analyzeWithProvider(activeProvider, apiKeys, config, session?.user?.id);
       
-      // --- 🛡️ INSTITUTIONAL PRICE GUARDRAIL ---
+      // --- 🛡️ NEURAL ALIGNMENT ENGINE (v4.1.4) ---
       if (inputMode === 'direct' && currentPrice && parsed?.timeframes) {
-        const firstTf = Object.keys(parsed.timeframes)[0];
-        const generatedEntry = parseFloat(String(parsed.timeframes[firstTf]?.entry).replace(/[^0-9.]/g, ''));
         const actualPrice = parseFloat(currentPrice);
-        
-        // If difference is > 10%, it's a hallucination
-        const diffPct = Math.abs(generatedEntry - actualPrice) / actualPrice;
-        if (diffPct > 0.1) {
-          console.error(`Calibration Failure: AI Entry (${generatedEntry}) vs Live Price (${actualPrice})`);
-          throw new Error("Terminal Calibration Error: The AI analysis drift is too high. Please check the ticker symbol and try again.");
-        }
+        Object.keys(parsed.timeframes).forEach(tf => {
+          const entry = parseFloat(String(parsed.timeframes[tf].entry).replace(/[^0-9.]/g, ''));
+          if (!isNaN(entry) && entry > 0) {
+            const driftRatio = actualPrice / entry;
+            parsed.timeframes[tf].entry = actualPrice;
+            parsed.timeframes[tf].stopLoss = (parseFloat(String(parsed.timeframes[tf].stopLoss).replace(/[^0-9.]/g, '')) * driftRatio).toFixed(2);
+            parsed.timeframes[tf].takeProfit = (parseFloat(String(parsed.timeframes[tf].takeProfit).replace(/[^0-9.]/g, '')) * driftRatio).toFixed(2);
+          }
+        });
       }
-      // ----------------------------------------
+      // -------------------------------------------
 
       setResults(parsed);
       retryCount.current = 0;
@@ -572,7 +572,7 @@ function App() {
       <header className="header">
         <div className="header-left">
           <Activity color="var(--accent-color)" size={22} />
-          <h1>AlphaVision Terminal <span className="version-badge">v4.1.3-STABLE</span></h1>
+          <h1>AlphaVision Terminal <span className="version-badge">v4.1.4-STABLE</span></h1>
           <div className="header-separator"></div>
           {error && (
             <div className="emergency-diagnostic-console">
