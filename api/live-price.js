@@ -19,9 +19,14 @@ export default async function handler(req, res) {
   const fetchers = [];
 
   // Fetcher 1: Groww (Indian)
-  const isIndian = upperEx === 'NSE' || upperEx === 'BSE' || ['NIFTY', 'BANKNIFTY', 'RELIANCE', 'TCS'].some(s => upper.includes(s));
+  const isIndian = upperEx === 'NSE' || upperEx === 'BSE' || ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'SENSEX', 'RELIANCE', 'TCS'].some(s => upper.includes(s));
   if (isIndian) {
-    const growwMap = { NIFTY: 'NIFTY', BANKNIFTY: 'BANKNIFTY' };
+    const growwMap = { 
+      'NIFTY': 'NIFTY', 
+      'BANKNIFTY': 'BANKNIFTY', 
+      'FINNIFTY': 'FINNIFTY',
+      'SENSEX': 'SENSEX'
+    };
     const sym = growwMap[upper] || upper;
     fetchers.push((async () => {
       const r = await fetch(`https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/NSE/segment/CASH/${sym}/latest`);
@@ -33,10 +38,12 @@ export default async function handler(req, res) {
   }
 
   // Fetcher 2: Binance (Crypto)
-  const isCrypto = upperEx === 'BINANCE' || upper.endsWith('USDT') || upper.endsWith('USD');
-  if (isCrypto || upper.length < 5) {
+  const isCrypto = upperEx === 'BINANCE' || upper.endsWith('USDT') || upper.endsWith('USD') || ['BTC', 'ETH', 'SOL', 'BNB'].includes(upper);
+  if (isCrypto) {
     let bSym = upper.replace('USD', 'USDT');
-    if (!bSym.endsWith('USDT')) bSym += 'USDT';
+    if (!bSym.endsWith('USDT') && !['BTC', 'ETH', 'SOL', 'BNB'].includes(upper)) bSym += 'USDT';
+    else if (['BTC', 'ETH', 'SOL', 'BNB'].includes(upper)) bSym = upper + 'USDT';
+    
     fetchers.push((async () => {
       const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${bSym}`);
       const d = await r.json();
@@ -46,7 +53,17 @@ export default async function handler(req, res) {
   }
 
   // Fetcher 3: Yahoo (Global Fallback)
-  const ySym = upperEx === 'NSE' ? upper + '.NS' : upperEx === 'BSE' ? upper + '.BO' : upper;
+  const yahooMap = {
+    'NIFTY': '^NSEI',
+    'BANKNIFTY': '^NSEBANK',
+    'FINNIFTY': 'NIFTY_FIN_SERVICE.NS',
+    'SENSEX': '^BSESN',
+    'GOLD': 'GC=F',
+    'SPX': '^GSPC',
+    'NDX': '^NDX',
+    'US30': '^DJI',
+  };
+  const ySym = yahooMap[upper] || (upperEx === 'NSE' ? upper + '.NS' : upperEx === 'BSE' ? upper + '.BO' : upper);
   fetchers.push((async () => {
     const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?interval=1m&range=1d`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     const d = await r.json();

@@ -86,6 +86,7 @@ function App() {
   const [hasAccess, setHasAccess] = useState(true);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
+  const isAdmin = session?.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() || session?.user?.email?.toLowerCase() === 'kajalraste13@gmail.com';
 
   const handleSaveSettings = () => {
     setSettingsSaved(true);
@@ -819,6 +820,28 @@ function App() {
                 <option value="pollinations">Pollinations (Keyless)</option>
               </select>
             </div>
+            
+            <div className="form-group">
+              <label>Default Timeframe</label>
+              <select value={activeTimeframe} onChange={(e) => setActiveTimeframe(e.target.value)}>
+                {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Default Risk %</label>
+              <input 
+                type="number" 
+                value={riskPercent} 
+                onChange={(e) => {
+                  setRiskPercent(e.target.value);
+                  localStorage.setItem('av_risk_pct', e.target.value);
+                }} 
+                min="0.1" 
+                max="10" 
+                step="0.1"
+              />
+            </div>
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <input type="checkbox" checked={syncChartTheme} onChange={(e) => {
                 setSyncChartTheme(e.target.checked);
@@ -826,26 +849,34 @@ function App() {
               }} />
               <label style={{ margin: 0 }}>Sync Chart with Theme (Note: Causes chart reload)</label>
             </div>
-            <div className="form-group">
-              <label>Gemini API Key (Required for Research Lab)</label>
-              <input type="password" value={apiKeys.gemini} onChange={(e) => {
-                const newKeys = { ...apiKeys, gemini: e.target.value };
-                setApiKeys(newKeys);
-                localStorage.setItem('av_gemini_key', e.target.value);
-              }} />
-            </div>
-            <div className="control-group">
-              <label>OpenAI API Key (Official ChatGPT)</label>
-              <input type="password" value={apiKeys.openai || ''} onChange={(e) => {
-                const newKeys = { ...apiKeys, openai: e.target.value };
-                setApiKeys(newKeys);
-                localStorage.setItem('av_openai_key', e.target.value);
-              }} />
-            </div>
-            <div className="control-group">
-              <label>TwelveData API Key (Live Data)</label>
-              <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({ ...apiKeys, twelvedata: e.target.value })} />
-            </div>
+
+            {isAdmin && (
+              <>
+                <div style={{ height: '1px', background: 'var(--surface-border)', margin: '16px 0' }}></div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '8px', textTransform: 'uppercase' }}>Admin Key Management</div>
+                
+                <div className="form-group">
+                  <label>Gemini API Key (Required for Research Lab)</label>
+                  <input type="password" value={apiKeys.gemini} onChange={(e) => {
+                    const newKeys = { ...apiKeys, gemini: e.target.value };
+                    setApiKeys(newKeys);
+                    localStorage.setItem('av_gemini_key', e.target.value);
+                  }} />
+                </div>
+                <div className="control-group">
+                  <label>OpenAI API Key (Official ChatGPT)</label>
+                  <input type="password" value={apiKeys.openai || ''} onChange={(e) => {
+                    const newKeys = { ...apiKeys, openai: e.target.value };
+                    setApiKeys(newKeys);
+                    localStorage.setItem('av_openai_key', e.target.value);
+                  }} />
+                </div>
+                <div className="control-group">
+                  <label>TwelveData API Key (Live Data)</label>
+                  <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({ ...apiKeys, twelvedata: e.target.value })} />
+                </div>
+              </>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
               <button className="btn-primary" onClick={handleSaveSettings}>
                 {settingsSaved ? 'Saved!' : 'Save Settings'}

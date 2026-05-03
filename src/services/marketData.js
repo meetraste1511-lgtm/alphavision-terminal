@@ -36,11 +36,14 @@ const YAHOO_INTERVAL_MAP = {
 const YAHOO_SYMBOL_MAP = {
   'NIFTY':     '^NSEI',
   'BANKNIFTY': '^NSEBANK',
+  'FINNIFTY':  'NIFTY_FIN_SERVICE.NS',
   'SENSEX':    '^BSESN',
   'GOLD':      'GC=F',
   'XAUUSD':    'GC=F',
   'SPX':       '^GSPC',
   'SP500':     '^GSPC',
+  'NDX':       '^NDX',
+  'US30':      '^DJI',
 };
 
 // Crypto symbols that Binance supports (no slash format)

@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planAmount } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, userEmail, planAmount, referralCode } = req.body;
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     
@@ -37,6 +37,33 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // --- 🤝 REFERRAL SYSTEM LOGIC ---
+    let referrerId = null;
+    if (referralCode) {
+      const { data: referrer } = await supabase
+        .from('profiles')
+        .select('id, referral_balance')
+        .eq('referral_code', referralCode)
+        .single();
+      
+      if (referrer && referrer.id !== userId) {
+        referrerId = referrer.id;
+        const newBalance = (referrer.referral_balance || 0) + 200;
+        await supabase
+          .from('profiles')
+          .update({ referral_balance: newBalance })
+          .eq('id', referrerId);
+        
+        // Log referral transaction
+        await supabase.from('referral_logs').insert({
+          referrer_id: referrerId,
+          referred_user_id: userId,
+          amount: 200,
+          payment_id: razorpay_payment_id
+        });
+      }
+    }
 
     // Fetch current profile to check for existing subscription
     const { data: existingProfile } = await supabase
@@ -69,7 +96,8 @@ export default async function handler(req, res) {
       .upsert({ 
         id: userId, 
         email: userEmail,
-        subscription_expiry_date: expiryDate.toISOString() 
+        subscription_expiry_date: expiryDate.toISOString(),
+        referred_by: referralCode || null
       }, { onConflict: 'id' });
 
     if (profileErr) {

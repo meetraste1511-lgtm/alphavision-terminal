@@ -21,14 +21,18 @@
   /* Make the header wrap and stack nicely */
   .header {
     height: auto !important;
-    padding: 12px 16px !important;
+    padding: 8px 12px !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 8px !important;
   }
 
   .header-left {
     width: 100% !important;
     justify-content: space-between !important;
+  }
+  
+  .header-left h1 {
+    font-size: 0.9rem !important;
   }
 
   .header-separator {
@@ -39,36 +43,52 @@
   .mode-toggle {
     width: 100% !important;
     display: flex !important;
+    margin-top: 4px;
   }
   .mode-toggle button {
     flex: 1 !important;
+    padding: 6px 4px !important;
+    font-size: 0.7rem !important;
   }
 
   /* Header actions row below title */
   .header-actions {
     width: 100% !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .btn-pitch {
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+  }
+  
+  .institutional-badge {
+    margin-right: 0 !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
   }
 
   /* Make the iframe/tradingview container scrollable vertically */
-  .chart-panel {
-    min-height: 400px !important;
+  .workspace-panel {
+    height: 400px !important;
+    order: 1 !important;
   }
 
   /* Fix risk grid stacking */
   .risk-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr 1fr !important;
   }
 
   /* Results panel full width */
-  .results-panel {
-    width: 100% !important;
-    padding: 16px !important;
-  }
-
-  /* Make order entry inputs stack */
-  .sidebar-section {
-    padding: 12px !important;
+  .analysis-overlay {
+    position: relative !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 12px !important;
+    width: auto !important;
   }
 
   /* Fix the timeframes row to scroll horizontally if needed */
@@ -76,14 +96,18 @@
     display: flex !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
-    gap: 8px !important;
-    padding-bottom: 8px !important;
+    gap: 6px !important;
+    padding: 4px 0 !important;
     -webkit-overflow-scrolling: touch !important;
   }
   
   .tf-tab {
-    flex-shrink: 0 !important;
-    min-width: 70px !important;
+    flex: 0 0 60px !important;
+    padding: 6px 4px !important;
+  }
+  
+  .tf-tab-label {
+    font-size: 0.7rem !important;
   }
   
   /* Levels Grid 2x2 */
@@ -91,11 +115,155 @@
     grid-template-columns: 1fr 1fr !important;
   }
 
-  /* Footer fixed at bottom */
+  /* Sidebar Adjustment */
   .sidebar-panel {
-    display: flex !important;
-    flex-direction: column !important;
-    height: calc(100vh - 60px) !important;
+    order: 2 !important;
+    height: auto !important;
+    overflow-y: visible !important;
   }
+  
   .sidebar-content {
+    height: auto !important;
+  }
+  
+  .quick-picks {
+    justify-content: center !important;
+  }
+  
+  .stat-value {
+    font-size: 0.8rem !important;
+  }
+
+  /* Glassmorphism for Mobile Header */
+  .header {
+    background: rgba(var(--bg-color-rgb), 0.7) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+  }
+
+  /* Journal / Modal Responsiveness */
+  .journal-overlay, .research-modal-overlay {
+    padding: 0 !important;
+  }
+
+  .journal-window, .research-lab-container {
+    height: 100vh !important;
+    width: 100vw !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    flex-direction: column !important;
+  }
+
+  .journal-sidebar, .research-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    padding: 16px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--surface-border) !important;
+  }
+
+  .journal-branding, .sidebar-label, .mission-checklist {
+    display: none !important; /* Hide secondary info on mobile to save space */
+  }
+
+  .journal-stats-summary {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .stat-card {
+    flex: 0 0 120px !important;
+    padding: 10px !important;
+  }
+
+  .stat-card-value {
+    font-size: 1rem !important;
+  }
+
+  .journal-main, .research-main {
+    flex: 1 !important;
+    padding: 16px !important;
+    overflow-y: auto !important;
+  }
+
+  .journal-main-header {
+    padding: 12px 16px !important;
+  }
+
+  .tab-group {
+    gap: 16px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+
+  .journal-form {
+    padding: 16px !important;
+  }
+
+  .form-grid-top {
+    grid-template-columns: 1fr !important; /* Stack form on mobile */
+    gap: 12px !important;
+  }
+
+  .ledger-header {
+    grid-template-columns: 1fr 100px !important; /* Simplified header */
+  }
+  .ledger-header span:not(:nth-child(2)):not(:nth-child(5)) {
+    display: none !important;
+  }
+
+  .ledger-row {
+    grid-template-columns: 1fr 100px !important;
+    padding: 12px !important;
+  }
+
+  .ledger-date, .ledger-setup, .ledger-mistake {
+    display: none !important;
+  }
+
+  .ledger-asset {
+    font-size: 0.85rem !important;
+  }
+
+  .ledger-pnl {
+    font-size: 0.9rem !important;
+  }
+
+  /* Intelligence Lab Mobile */
+  .research-sidebar {
+    padding: 12px !important;
+  }
+  
+  .lab-logo {
+    font-size: 0.9rem !important;
+  }
+
+  .research-controls {
+    gap: 16px !important;
+  }
+
+  .research-tips {
+    display: none !important;
+  }
+
+  .research-main {
+    padding: 24px !important;
+  }
+
+  .research-placeholder h1 {
+    font-size: 1.4rem !important;
+  }
+
+  /* Settings Modal Mobile */
+  .settings-modal {
+    width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 20px !important;
+  }
 }
+

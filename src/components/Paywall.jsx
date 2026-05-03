@@ -6,6 +6,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
   const [plan, setPlan] = useState('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [status, setStatus] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   
   const plans = {
     monthly: { amount: 1199, label: '1 Month', desc: '₹1,199 / month' },
@@ -68,7 +69,8 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
                    razorpay_signature: response.razorpay_signature,
                    userId: userId,
                    userEmail: userEmail,
-                   planAmount: currentAmount
+                   planAmount: currentAmount,
+                   referralCode: referralCode
                 })
              });
              const verifyData = await verifyRes.json();
@@ -209,6 +211,27 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
             ))}
           </div>
 
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Referral Code (Optional)</label>
+            <input 
+              type="text" 
+              placeholder="e.g. AV-ABCD-1234"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1.5px solid #e2e8f0',
+                fontSize: '1rem',
+                outline: 'none',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
           <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '24px', marginBottom: '24px', border: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                <span style={{ color: '#64748b', fontWeight: '600' }}>Total Amount:</span>
@@ -229,6 +252,7 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
               </div>
             )}
           </div>
+
 
           <div style={{ textAlign: 'center', marginTop: '16px' }}>
              <button 

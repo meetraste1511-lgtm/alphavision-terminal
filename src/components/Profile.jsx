@@ -13,7 +13,16 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
   useEffect(() => {
     async function fetchDetails() {
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (data) setProfileData(data);
+      if (data) {
+        setProfileData(data);
+        
+        // Auto-generate referral code if missing
+        if (!data.referral_code) {
+          const newCode = `AV-${user.id.slice(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+          await supabase.from('profiles').update({ referral_code: newCode }).eq('id', user.id);
+          setProfileData(prev => ({ ...prev, referral_code: newCode }));
+        }
+      }
     }
     fetchDetails();
   }, [user.id]);
@@ -65,8 +74,8 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
         <div style={{ padding: '16px', background: '#f8fafc', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div style={{ background: 'white', padding: '10px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>Research Expiry</div>
-            <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155' }}>
-              {profileData?.subscription_expiry_date ? new Date(profileData.subscription_expiry_date).toLocaleDateString() : 'Active'}
+            <div style={{ fontSize: '0.8rem', fontWeight: '700', color: profileData?.subscription_expiry_date ? '#334155' : '#ef4444' }}>
+              {profileData?.subscription_expiry_date ? new Date(profileData.subscription_expiry_date).toLocaleDateString() : 'No Active Plan'}
             </div>
           </div>
           <div style={{ background: 'white', padding: '10px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.03)' }}>
@@ -88,14 +97,74 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
             <div className="icon-wrap"><Zap size={18} /></div>
             <span>API Management</span>
           </button>
-
-          <button className="dropdown-item" style={{ ...itemStyle, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="icon-wrap"><UserPlus size={18} /></div>
-              <span>Referral Network</span>
+ 
+          <div style={{ padding: '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="icon-wrap"><UserPlus size={18} /></div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.9rem', color: '#475569', fontWeight: '600' }}>Referral Network</span>
+                  {profileData?.referral_code && (
+                    <span 
+                      style={{ fontSize: '0.65rem', color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(profileData.referral_code);
+                        alert(`Code ${profileData.referral_code} copied!`);
+                      }}
+                    >
+                      Copy: {profileData.referral_code}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#10b981' }}>₹{profileData?.referral_balance || 0}</span>
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#3b82f6' }}>$0 Earned</span>
-          </button>
+            
+            {profileData?.referral_balance >= 200 && (
+              <button 
+                onClick={async () => {
+                  const upi = prompt("Enter your UPI ID for ₹" + profileData.referral_balance + " withdrawal:");
+                  if (!upi) return;
+                  
+                  try {
+                    const res = await fetch('/api/request-withdrawal', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        userId: user.id,
+                        amount: profileData.referral_balance,
+                        upiId: upi
+                      })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      alert("Withdrawal request submitted! Amount will be credited in 24-48 hours.");
+                      window.location.reload();
+                    } else {
+                      alert("Error: " + data.error);
+                    }
+                  } catch (e) {
+                    alert("Network error. Try again.");
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  marginTop: '4px'
+                }}
+              >
+                Withdraw Earnings
+              </button>
+            )}
+          </div>
+
 
           <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)', margin: '12px 16px' }}></div>
 
