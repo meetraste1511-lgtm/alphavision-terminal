@@ -39,34 +39,34 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
         onClick={e => e.stopPropagation()} 
         style={{ 
           position: 'absolute', 
-          top: '64px', 
-          right: '24px', 
-          width: '320px', 
-          background: 'rgba(255, 255, 255, 0.95)', 
+          top: '60px', 
+          right: '16px', 
+          width: '280px', 
+          background: 'rgba(255, 255, 255, 0.98)', 
           backdropFilter: 'blur(20px)',
-          borderRadius: '20px', 
-          boxShadow: '0 20px 50px rgba(0,0,0,0.2)', 
-          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '12px', 
+          boxShadow: '0 10px 30px rgba(0,0,0,0.15)', 
+          border: '1px solid rgba(0,0,0,0.08)',
           overflow: 'hidden',
-          animation: 'revealDropdown 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          animation: 'revealDropdown 0.2s ease-out',
           color: '#1e293b'
         }}
       >
         {/* Institutional Header */}
-        <div style={{ padding: '24px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ position: 'relative' }}>
             {displayAvatar ? (
-              <img src={displayAvatar} alt="Avatar" style={{ width: '52px', height: '52px', borderRadius: '16px', border: '2px solid #3b82f6' }} />
+              <img src={displayAvatar} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '10px', border: '2px solid #3b82f6' }} />
             ) : (
-              <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.4rem', border: '2px solid white', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}>
+              <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.1rem', border: '1px solid white' }}>
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
-            <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', width: '16px', height: '16px', background: '#10b981', border: '3px solid white', borderRadius: '50%' }}></div>
+            <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', background: '#10b981', border: '2px solid white', borderRadius: '50%' }}></div>
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
+            <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
           </div>
         </div>
 

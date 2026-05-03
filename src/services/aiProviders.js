@@ -191,9 +191,14 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
       rawResponse = await callGroq(keys.groq, finalPrompt);
       break;
     case 'openrouter':
-      if (!keys.openrouter) throw new Error("OpenRouter API key is missing. Add it in Settings.");
+      let effectiveOpenRouterKey = keys.openrouter;
+      if (!effectiveOpenRouterKey || effectiveOpenRouterKey === 'undefined' || effectiveOpenRouterKey === 'null' || effectiveOpenRouterKey.trim() === '') {
+        effectiveOpenRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      }
+      
+      if (!effectiveOpenRouterKey) throw new Error("Terminal Authorization Error: Managed OpenRouter key is missing. Contact Support.");
       if (isImageMode) throw new Error("OpenRouter (DeepSeek) does not support image upload yet. Switch to Direct Mode or use Gemini.");
-      rawResponse = await callOpenRouter(keys.openrouter, finalPrompt);
+      rawResponse = await callOpenRouter(effectiveOpenRouterKey, finalPrompt);
       break;
     case 'pollinations':
       if (isImageMode) throw new Error("Keyless AI does not support image upload yet. Switch to Direct Mode.");

@@ -60,12 +60,15 @@ function App() {
   const [imageBase64, setImageBase64] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
-  const [apiKeys, setApiKeys] = useState({
-    openai: localStorage.getItem('av_openai_key') || '',
-    gemini: localStorage.getItem('av_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY || '',
-    groq: localStorage.getItem('av_groq_key') || import.meta.env.VITE_GROQ_API_KEY || '',
-    openrouter: localStorage.getItem('av_openrouter_key') || import.meta.env.VITE_OPENROUTER_API_KEY || '',
-    twelvedata: localStorage.getItem('av_twelvedata_key') || import.meta.env.VITE_TWELVEDATA_API_KEY || ''
+  const [apiKeys, setApiKeys] = useState(() => {
+    const clean = (val) => (val === 'undefined' || val === 'null' || !val) ? '' : val;
+    return {
+      openai: clean(localStorage.getItem('av_openai_key')),
+      gemini: clean(localStorage.getItem('av_gemini_key')) || import.meta.env.VITE_GEMINI_API_KEY || '',
+      groq: clean(localStorage.getItem('av_groq_key')) || import.meta.env.VITE_GROQ_API_KEY || '',
+      openrouter: clean(localStorage.getItem('av_openrouter_key')) || import.meta.env.VITE_OPENROUTER_API_KEY || '',
+      twelvedata: clean(localStorage.getItem('av_twelvedata_key')) || import.meta.env.VITE_TWELVEDATA_API_KEY || ''
+    };
   });
 
   const [syncChartTheme, setSyncChartTheme] = useState(() => {
@@ -900,10 +903,7 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
         />
       )}
-      <div className="terminal-footer-meta">
-        <Activity size={10} />
-        <span>STABLE SYSTEM</span>
-      </div>
+
       <Disclaimer />
     </div>
   );
