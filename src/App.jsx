@@ -572,8 +572,15 @@ function App() {
       <header className="header">
         <div className="header-left">
           <Activity color="var(--accent-color)" size={22} />
-          <h1>AlphaVision Terminal</h1>
+          <h1>AlphaVision Terminal <span className="version-badge">v4.1.3-STABLE</span></h1>
           <div className="header-separator"></div>
+          {error && (
+            <div className="emergency-diagnostic-console">
+              <ShieldAlert size={14} />
+              <span>{error}</span>
+              <button className="close-err-btn" onClick={() => setError('')}><X size={12} /></button>
+            </div>
+          )}
           <div className="mode-toggle">
             <button className={inputMode === 'direct' ? 'active' : ''} onClick={() => setInputMode('direct')}>Live Chart</button>
             <button className={inputMode === 'image' ? 'active' : ''} onClick={() => setInputMode('image')}>Image Upload</button>

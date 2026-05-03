@@ -41,6 +41,47 @@
   margin: 0 4px;
 }
 
+.version-badge {
+  font-size: 0.6rem;
+  background: rgba(0, 243, 255, 0.1);
+  color: var(--accent-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  vertical-align: middle;
+}
+
+.emergency-diagnostic-console {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #ff4444;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  animation: pulse-border 2s infinite;
+}
+
+.close-err-btn {
+  background: transparent;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(255, 68, 68, 0.3); }
+  50% { border-color: rgba(255, 68, 68, 0.8); }
+  100% { border-color: rgba(255, 68, 68, 0.3); }
+}
+
 .header-actions {
   display: flex;
   gap: 8px;
