@@ -63,3 +63,22 @@
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
 }
+
+.beast-text {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.beast-glitch {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  text-shadow: 0 0 8px currentColor;
+}
+
+.beast-glow {
+  box-shadow: 0 0 12px currentColor;
+  filter: brightness(1.2);
+}

@@ -98,26 +98,35 @@ export default function Profile({ session, onClose, theme, onToggleTheme, onOpen
             <span>API Management</span>
           </button>
  
-          <div style={{ padding: '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div className="icon-wrap"><UserPlus size={18} /></div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.9rem', color: '#475569', fontWeight: '600' }}>Referral Network</span>
-                  {profileData?.referral_code && (
-                    <span 
-                      style={{ fontSize: '0.65rem', color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(profileData.referral_code);
-                        alert(`Code ${profileData.referral_code} copied!`);
-                      }}
-                    >
-                      Copy: {profileData.referral_code}
-                    </span>
-                  )}
-                </div>
+          <div style={{ padding: '20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div className="icon-wrap"><UserPlus size={18} /></div>
+              <span style={{ fontSize: '1rem', color: '#0f172a', fontWeight: '700' }}>Referral Network</span>
+              <span style={{ marginLeft: 'auto', fontSize: '1rem', fontWeight: '800', color: '#10b981' }}>₹{profileData?.referral_balance || 0}</span>
+            </div>
+
+            <div style={{ 
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+              padding: '16px', 
+              borderRadius: '16px', 
+              border: '1px solid rgba(0,0,0,0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.5px' }}>Your Referral Code</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                <span style={{ fontSize: '0.9rem', color: '#3b82f6', fontWeight: '700', fontFamily: 'monospace' }}>{profileData?.referral_code || '---'}</span>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(profileData?.referral_code || '');
+                    alert(`Code copied!`);
+                  }}
+                  style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700' }}
+                >
+                  COPY
+                </button>
               </div>
-              <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#10b981' }}>₹{profileData?.referral_balance || 0}</span>
             </div>
             
             {profileData?.referral_balance >= 200 && (

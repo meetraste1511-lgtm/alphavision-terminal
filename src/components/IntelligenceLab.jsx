@@ -108,7 +108,6 @@ const IntelligenceLab = ({ onClose }) => {
                   placeholder="e.g. NVIDIA 2025 GPU Demand vs Blackwell Delay..." 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  disabled
                 />
               </div>
             </div>
@@ -117,14 +116,14 @@ const IntelligenceLab = ({ onClose }) => {
               <label>Investment Horizon</label>
               <div className="horizon-toggle">
                 {['Scalp', 'Swing', 'Long Term'].map(h => (
-                  <button key={h} className={horizon === h ? 'active' : ''} disabled>{h}</button>
+                  <button key={h} className={horizon === h ? 'active' : ''} onClick={() => setHorizon(h)}>{h}</button>
                 ))}
               </div>
             </div>
 
             <div className="control-group">
               <label>Data Requirement</label>
-              <select value={requirement} disabled>
+              <select value={requirement} onChange={(e) => setRequirement(e.target.value)}>
                 <option value="Full Intelligence">Full Intelligence (All Data)</option>
                 <option value="Macro Context">Macro & Political Risk</option>
                 <option value="Fundamental Moat">Fundamentals & Moat</option>
@@ -132,9 +131,13 @@ const IntelligenceLab = ({ onClose }) => {
               </select>
             </div>
 
-            <button className="btn-run-research" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+            <button 
+              className="btn-run-research" 
+              onClick={performResearch} 
+              disabled={isSearching}
+            >
               <CheckCircle size={16} />
-              <span>Feature In Development</span>
+              <span>{isSearching ? 'Synthesizing...' : 'Run Deep Research'}</span>
             </button>
           </div>
 
@@ -149,23 +152,46 @@ const IntelligenceLab = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="research-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <div className="research-placeholder config" style={{ textAlign: 'center', maxWidth: '600px' }}>
-            <Layers size={80} color="var(--accent-color)" style={{ opacity: 0.5, marginBottom: '24px' }} />
-            <h1 style={{ fontSize: '2rem', marginBottom: '16px', letterSpacing: '0.05em' }}>AV-LABS IS COMING SOON</h1>
-            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
-              We are currently re-architecting the backend intelligence engine for <strong>faster, more secure, and highly scalable</strong> AI research synthesis.
-            </p>
-            <div className="config-steps" style={{ textAlign: 'left', background: 'rgba(var(--accent-rgb), 0.05)', padding: '24px', borderRadius: '12px' }}>
-              <div style={{ marginBottom: '12px', fontWeight: 'bold', color: 'var(--accent-color)' }}>UPCOMING FEATURES:</div>
-              <div style={{ padding: '8px 0' }}>• Real-time Bloomberg & Reuters Terminal Integration</div>
-              <div style={{ padding: '8px 0' }}>• Sub-second Llama 3 70B Institutional Inferencing</div>
-              <div style={{ padding: '8px 0' }}>• Advanced Cryptographic Data Security</div>
+        <div className="research-main">
+          {isSearching ? (
+            <div className="research-placeholder searching">
+              <Zap size={60} color="var(--accent-color)" className="spinning" style={{ marginBottom: '24px' }} />
+              <h2>{searchStatus}</h2>
+              <div className="search-live-logs">
+                {searchLogs.map(log => (
+                  <div key={log.id} className="log-item">
+                    <span className="log-arrow">›</span> {log.msg}
+                  </div>
+                ))}
+              </div>
             </div>
-            <p style={{ marginTop: '32px', fontSize: '0.9rem', opacity: 0.5 }}>
-              Thank you for testing AlphaVision. Your feedback during this beta helps us build the ultimate trading terminal.
-            </p>
-          </div>
+          ) : error ? (
+            <div className="research-placeholder error">
+              <ShieldAlert size={60} color="var(--danger-color)" style={{ marginBottom: '24px' }} />
+              <h2>Neural Handshake Failed</h2>
+              <p>{error}</p>
+              <button className="btn-retry" onClick={performResearch} style={{ marginTop: '20px', padding: '10px 20px', background: 'var(--accent-color)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Retry Synthesis</button>
+            </div>
+          ) : report ? (
+            <div className="report-container">
+              <div className="report-header">
+                <span className="badge-live">LIVE INSTITUTIONAL DATA</span>
+                <h1>{query.toUpperCase()} RESEARCH DOSSIER</h1>
+                <div className="report-meta">
+                  Horizon: {horizon} | Intensity: {requirement} | Handshake: Verified
+                </div>
+              </div>
+              <div className="markdown-body">
+                <ResearchRenderer content={report} />
+              </div>
+            </div>
+          ) : (
+            <div className="research-placeholder idle">
+              <Layers size={80} color="var(--accent-color)" style={{ opacity: 0.2, marginBottom: '24px' }} />
+              <h1>INTELLIGENCE LAB</h1>
+              <p>Enter a ticker or market theme to begin deep neural synthesis.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -594,10 +594,7 @@ function App() {
             Global Wire
           </button>
           
-          <div className="institutional-badge beast-pulse">
-            <Activity size={14} color="#00ff9d" />
-            <span>v4.0.2 BEAST</span>
-          </div>
+
 
           <button className="icon-btn" onClick={toggleTheme}>{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="icon-btn" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
@@ -631,7 +628,7 @@ function App() {
                     </select>
                   </div>
                   <div className="input-group">
-                    <label><Target size={14} /> TICKER SYMBOL</label>
+                    <label>TICKER SYMBOL</label>
                     <div className="symbol-input-wrapper">
                       <input
                         type="text"
@@ -641,11 +638,11 @@ function App() {
                         className="institutional-input"
                       />
                       <button 
-                        className="sync-btn"
+                        className="sync-btn-new"
                         onClick={() => setChartSymbol(resolveTicker(directAsset))}
                         title="Force Sync Chart"
                       >
-                        <RotateCcw size={16} />
+                        <RotateCcw size={14} />
                       </button>
                     </div>
                   </div>
@@ -670,14 +667,10 @@ function App() {
                 <input type="number" value={capital} onChange={(e) => setCapital(e.target.value)} />
               </div>
               {inputMode === 'direct' && (
-                <div className="live-price-badge" style={{
-                  padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', marginBottom: '12px',
-                  border: `1px solid ${livePrice ? 'var(--success-color)' : 'var(--surface-border)'}`,
-                  opacity: livePriceFetching ? 0.6 : 1
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>⚡ LIVE PRICE {livePriceSource && `• ${livePriceSource}`}</span>
-                    <span style={{ fontWeight: 700, color: 'var(--success-color)' }}>{livePriceFetching ? 'Fetching...' : livePrice || '—'}</span>
+                <div className={`live-price-badge ${livePrice ? 'active' : ''} ${livePriceFetching ? 'fetching' : ''}`}>
+                  <div className="live-price-content">
+                    <span className="live-price-label">⚡ LIVE PRICE {livePriceSource && `• ${livePriceSource}`}</span>
+                    <span className="live-price-value">{livePriceFetching ? 'Fetching...' : livePrice || '—'}</span>
                   </div>
                 </div>
               )}
@@ -875,6 +868,14 @@ function App() {
                   <label>TwelveData API Key (Live Data)</label>
                   <input type="password" value={apiKeys.twelvedata} onChange={(e) => setApiKeys({ ...apiKeys, twelvedata: e.target.value })} />
                 </div>
+                <div className="form-group" style={{ marginTop: '12px' }}>
+                  <label>OpenRouter API Key (DeepSeek R1)</label>
+                  <input type="password" value={apiKeys.openrouter} onChange={(e) => {
+                    const newKeys = { ...apiKeys, openrouter: e.target.value };
+                    setApiKeys(newKeys);
+                    localStorage.setItem('av_openrouter_key', e.target.value);
+                  }} />
+                </div>
               </>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
@@ -900,9 +901,8 @@ function App() {
         />
       )}
       <div className="terminal-footer-meta">
-        <span>V3.1.0-INSTITUTIONAL</span>
         <Activity size={10} />
-        <span>STABLE</span>
+        <span>STABLE SYSTEM</span>
       </div>
       <Disclaimer />
     </div>

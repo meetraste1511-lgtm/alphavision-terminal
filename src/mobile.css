@@ -21,9 +21,10 @@
   /* Make the header wrap and stack nicely */
   .header {
     height: auto !important;
-    padding: 8px 12px !important;
+    padding: 12px !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 12px !important;
+    align-items: flex-start !important;
   }
 
   .header-left {
@@ -54,14 +55,16 @@
   /* Header actions row below title */
   .header-actions {
     width: 100% !important;
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
   }
   
   .btn-pitch {
-    padding: 4px 8px !important;
-    font-size: 0.65rem !important;
+    padding: 8px !important;
+    font-size: 0.7rem !important;
+    justify-content: center !important;
+    width: 100% !important;
   }
   
   .institutional-badge {
