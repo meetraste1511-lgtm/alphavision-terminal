@@ -706,7 +706,7 @@ function App() {
               {inputMode === 'direct' && (
                 <div className={`live-price-badge ${livePrice ? 'active' : ''} ${livePriceFetching ? 'fetching' : ''}`}>
                   <div className="live-price-content">
-                    <span className="live-price-label">⚡ LIVE PRICE {livePriceSource && `• ${livePriceSource}`}</span>
+                    <span className="live-price-label">Live Market Price</span>
                     <span className="live-price-value">{livePriceFetching ? 'Fetching...' : livePrice || '—'}</span>
                   </div>
                 </div>
