@@ -222,6 +222,21 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
     }
   } catch (err) {
     console.error('Provider Error:', err.message);
+    
+    // 🚀 PITCH MODE: Emergency Fallback to Free Keyless AI
+    if (provider !== 'pollinations') {
+        console.warn('Attempting emergency fallback to Keyless AI (Pollinations) for Pitch Mode...');
+        try {
+            const fallbackResponse = await callPollinations(finalPrompt);
+            let cleanedJson = fallbackResponse.trim();
+            const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+            if (jsonMatch) cleanedJson = jsonMatch[0];
+            return JSON.parse(cleanedJson);
+        } catch (pollinationsErr) {
+            console.error('Pollinations Fallback also failed:', pollinationsErr.message);
+        }
+    }
+
     // 🛡️ BULLETPROOF FALLBACK
     return {
       liveContext: "AV-QS Summary: Strategic scan complete. Asset is currently in a high-volatility zone.",
