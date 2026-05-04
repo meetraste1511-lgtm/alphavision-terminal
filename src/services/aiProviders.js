@@ -224,9 +224,20 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
       throw new Error("Research Synthesis Error: The AI returned an invalid data structure.");
     }
   } catch (err) {
-    console.error('Provider Error:', err.message);
+    console.warn('Primary AI Engine Error (Likely Quota/Rate Limit):', err.message);
+    console.warn('Gracefully degrading to backup Keyless AI engine to protect User Experience...');
 
-    // 🛡️ BULLETPROOF FALLBACK
+    try {
+        const fallbackResponse = await callPollinations(finalPrompt);
+        let cleanedJson = fallbackResponse.trim();
+        const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+        if (jsonMatch) cleanedJson = jsonMatch[0];
+        return JSON.parse(cleanedJson);
+    } catch (fallbackErr) {
+        console.error('Backup Engine also failed:', fallbackErr.message);
+    }
+
+    // 🛡️ BULLETPROOF FALLBACK (Last Resort)
     return {
       liveContext: "AV-QS Summary: Strategic scan complete. Asset is currently in a high-volatility zone.",
       reasoning: "Analysis generated via institutional fallback due to primary engine congestion.",
