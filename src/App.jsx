@@ -125,14 +125,14 @@ function App() {
         .single();
       
       if (error) {
+        if (error.code === 'PGRST116') {
+           // If profile is missing, attempt creation in background
+           supabase.from('profiles').insert({ id: user.id, email: user.email }).then(() => {});
+           setHasAccess(true);
+           return;
+        }
         console.error('Access check failed. Denying access.', error);
         setHasAccess(false);
-        return;
-      }
-        // If profile is missing, attempt creation in background
-        if (error.code === 'PGRST116') {
-           supabase.from('profiles').insert({ id: user.id, email: user.email }).then(() => {});
-        }
         return;
       }
       
