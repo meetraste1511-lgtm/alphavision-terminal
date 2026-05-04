@@ -25,13 +25,8 @@ export default async function handler(req, res) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret) {
-      console.warn('API Warning: Missing Razorpay credentials. Falling back to Mock Order for Pitch Mode.');
-      return res.status(200).json({ 
-        id: 'order_pitch_mode_' + Date.now(),
-        amount: amount * 100,
-        currency: 'INR',
-        isMock: true
-      });
+      console.error('API Error: Missing Razorpay credentials in environment');
+      return res.status(500).json({ error: 'Configuration Error', details: 'Razorpay Key ID or Secret is missing in server environment variables.' });
     }
 
     const orderPayload = JSON.stringify({
@@ -60,14 +55,8 @@ export default async function handler(req, res) {
             console.log('API: Razorpay order created successfully');
             res.status(200).json(JSON.parse(data));
           } else {
-            console.warn('API Warning: Razorpay returned error', razorRes.statusCode, data);
-            console.warn('Falling back to Mock Order for Pitch Mode.');
-            res.status(200).json({ 
-              id: 'order_pitch_mode_' + Date.now(),
-              amount: amount * 100,
-              currency: 'INR',
-              isMock: true
-            });
+            console.error('API Error: Razorpay returned status', razorRes.statusCode, data);
+            res.status(razorRes.statusCode).json({ error: 'Razorpay API Error', details: data });
           }
           resolve();
         });

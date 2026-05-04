@@ -105,12 +105,8 @@ function App() {
     console.log('Checking access for:', user.email);
 
     // Master Bypass List (Institutional Admins Only)
-    const masters = [
-      ADMIN_EMAIL?.toLowerCase(), 
-      'kajalraste13@gmail.com'
-    ];
-    if (masters.includes(user.email?.toLowerCase())) {
-      console.log('Master access granted.');
+    if (user.email?.toLowerCase() === ADMIN_EMAIL?.toLowerCase()) {
+      console.log('Admin access granted.');
       setHasAccess(true);
       return;
     }
@@ -128,26 +124,11 @@ function App() {
         .eq('id', user.id)
         .single();
       
-      // --- 🧠 AUTOMATED ACCOUNT REPAIR (Self-Healing) ---
-      const isAffectedUser = user.email?.toLowerCase() === 'bhaskaryasham@gmail.com';
-      if (isAffectedUser && (!data || !data.subscription_expiry_date)) {
-        console.log('Self-healing triggered for bhaskaryasham. Auto-repairing 1-month access.');
-        const autoExpiry = new Date();
-        autoExpiry.setDate(autoExpiry.getDate() + 30);
-        await supabase.from('profiles').upsert({ 
-          id: user.id, 
-          email: user.email, 
-          subscription_expiry_date: autoExpiry.toISOString() 
-        }, { onConflict: 'id' });
-        setHasAccess(true);
+      if (error) {
+        console.error('Access check failed. Denying access.', error);
+        setHasAccess(false);
         return;
       }
-      // --------------------------------------------------
-
-      // If there's an error (missing profile, DB down), assume access to prevent blocking paid users
-      if (error) {
-        console.log('Access check soft-failed. Allowing access while syncing.');
-        setHasAccess(true);
         // If profile is missing, attempt creation in background
         if (error.code === 'PGRST116') {
            supabase.from('profiles').insert({ id: user.id, email: user.email }).then(() => {});
@@ -413,7 +394,8 @@ function App() {
         marketDataText,
         currentPrice: manualPrice ? parseFloat(manualPrice) : (currentPrice || null),
         imageBase64,
-        isImageMode: inputMode === 'image'
+        isImageMode: inputMode === 'image',
+        sessionToken: session?.access_token
       };
 
       const parsed = await analyzeWithProvider(activeProvider, apiKeys, config, session?.user?.id);

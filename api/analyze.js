@@ -15,7 +15,7 @@ try {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -24,6 +24,17 @@ export default async function handler(req, res) {
 
   const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   if (!GEMINI_KEY) return res.status(500).json({ error: 'AI service not configured on server' });
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'Unauthorized: Missing session token' });
+
+  const token = authHeader.replace('Bearer ', '');
+  if (!supabase) return res.status(500).json({ error: 'Supabase not initialized on server' });
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+  }
 
   try {
     // 🧠 FETCH LEARNING DATA (MEMORY)

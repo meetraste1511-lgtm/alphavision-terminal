@@ -39,10 +39,13 @@ Return ONLY a valid JSON object. Generate UNIQUE data for ALL timeframes.
 /**
  * Gemini Provider (Built-in web search option)
  */
-async function callGemini(prompt, userId, symbol) {
+async function callGemini(prompt, userId, symbol, sessionToken) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+
   const response = await fetch('/api/analyze', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers,
     body: JSON.stringify({ prompt, userId, symbol })
   });
 
@@ -184,7 +187,7 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
   try {
     switch (provider) {
       case 'gemini':
-        rawResponse = await callGemini(finalPrompt, userId, assetName);
+        rawResponse = await callGemini(finalPrompt, userId, assetName, config.sessionToken);
         break;
       case 'groq':
         if (!keys.groq) throw new Error("Groq API key is missing. Add it in Settings.");
@@ -222,20 +225,6 @@ Do NOT use any historical memory or external data. Base 100% of your analysis on
     }
   } catch (err) {
     console.error('Provider Error:', err.message);
-    
-    // 🚀 PITCH MODE: Emergency Fallback to Free Keyless AI
-    if (provider !== 'pollinations') {
-        console.warn('Attempting emergency fallback to Keyless AI (Pollinations) for Pitch Mode...');
-        try {
-            const fallbackResponse = await callPollinations(finalPrompt);
-            let cleanedJson = fallbackResponse.trim();
-            const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
-            if (jsonMatch) cleanedJson = jsonMatch[0];
-            return JSON.parse(cleanedJson);
-        } catch (pollinationsErr) {
-            console.error('Pollinations Fallback also failed:', pollinationsErr.message);
-        }
-    }
 
     // 🛡️ BULLETPROOF FALLBACK
     return {

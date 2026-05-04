@@ -44,16 +44,6 @@ export default function Paywall({ userEmail, userId, isNewRegistration }) {
       const order = await res.json();
       if (!order.id) throw new Error('Server did not return a valid Order ID.');
 
-      if (order.isMock) {
-        setStatus('Pitch Mode: Simulating Secure Payment...');
-        setTimeout(() => {
-          setStatus('Account Unlocked! Launching Terminal...');
-          localStorage.setItem('av_just_paid', Date.now().toString());
-          setTimeout(() => window.location.reload(), 2000);
-        }, 1500);
-        return;
-      }
-
       setStatus('Order created! Opening secure popup...');
 
       if (!window.Razorpay) {
